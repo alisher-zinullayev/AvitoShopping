@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "26159B16-52E6-4A49-A91F-184A87BAD8FB"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A6D9F4C2-6C43-4EC6-989C-F80AB2195FFF"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AvitoShopping/Data/Repositories/ProductRepositoryImpl.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "14"
+            endingLineNumber = "14"
+            landmarkName = "ProductRepository"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  uuid = "A6D9F4C2-6C43-4EC6-989C-F80AB2195FFF - 8d3fbab7cb1fc5d1"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AvitoShopping.ProductRepository.deinit"
+                  moduleName = "AvitoShopping.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/alisherzinullayev/Desktop/AvitoShopping/AvitoShopping/Data/Repositories/ProductRepositoryImpl.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+               <Location
+                  uuid = "A6D9F4C2-6C43-4EC6-989C-F80AB2195FFF - 7bbe2c377b1fa584"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "AvitoShopping.ProductRepository.__deallocating_deinit"
+                  moduleName = "AvitoShopping.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/alisherzinullayev/Desktop/AvitoShopping/AvitoShopping/Data/Repositories/ProductRepositoryImpl.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
