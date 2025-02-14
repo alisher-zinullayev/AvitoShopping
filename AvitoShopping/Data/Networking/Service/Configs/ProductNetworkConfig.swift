@@ -28,12 +28,6 @@ enum ProductNetworkConfig: NetworkConfig {
                     queryItems.append(URLQueryItem(name: "title", value: keyword))
                 }
             }
-//            if let priceMin = priceMin {
-//                queryItems.append(URLQueryItem(name: "price_min", value: "\(priceMin)"))
-//            }
-//            if let priceMax = priceMax {
-//                queryItems.append(URLQueryItem(name: "price_max", value: "\(priceMax)"))
-//            }
             if let priceMin = priceMin {
                 queryItems.append(URLQueryItem(name: "price_min", value: "\(Int(priceMin))"))
             }

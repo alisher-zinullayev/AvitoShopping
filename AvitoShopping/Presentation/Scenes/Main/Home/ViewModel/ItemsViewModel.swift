@@ -195,7 +195,7 @@ final class ItemsViewModel: ObservableObject {
     private let addToCartUseCase: AddToCartUseCaseProtocol
     
     private var pagination = Pagination()
-    private var currentFilter: ProductFilter?  // Stores the active filter, if any.
+     var currentFilter: ProductFilter?  // Stores the active filter, if any.
     
     init(fetchProductsUseCase: FetchProductsUseCaseProtocol,
          addFavoriteUseCase: AddFavoriteProductUseCaseProtocol,
@@ -238,6 +238,29 @@ final class ItemsViewModel: ObservableObject {
                     state = .loaded(ViewData(products: []))
                     return
                 }
+                if products.count < pagination.limit {
+                    pagination.totalCount = pagination.offset + products.count
+                }
+                pagination.nextPage()
+                let viewModels = getItemViewModels(from: products)
+                state = .loaded(ViewData(products: viewModels))
+            } catch {
+                state = .error(error.localizedDescription)
+            }
+        }
+    }
+}
+
+extension ItemsViewModel {
+    func clearFilter() {
+        // Clear any active filter.
+        currentFilter = nil
+        pagination.reset()
+        state = .loading
+        Task {
+            do {
+                let products = try await fetchProductsUseCase.execute(offset: pagination.offset,
+                                                                      limit: pagination.limit)
                 if products.count < pagination.limit {
                     pagination.totalCount = pagination.offset + products.count
                 }
@@ -321,52 +344,6 @@ private extension ItemsViewModel {
             }
         }
     }
-    
-//    func loadMore() {
-//        Task {
-//            do {
-//                let products: [ProductDTO]
-//                if let filter = currentFilter {
-//                    // Create a new filter with current pagination values.
-//                    let updatedFilter = ProductFilter(
-//                        title: filter.title,
-//                        priceMin: filter.priceMin,
-//                        priceMax: filter.priceMax,
-//                        categoryId: filter.categoryId,
-//                        offset: pagination.offset,
-//                        limit: pagination.limit
-//                    )
-//                    products = try await fetchProductsUseCase.executeFiltered(filter: updatedFilter)
-//                } else {
-//                    products = try await fetchProductsUseCase.execute(offset: pagination.offset,
-//                                                                      limit: pagination.limit)
-//                }
-//                
-//                // If no products were returned while filtering, update state to loaded with empty array.
-//                if products.isEmpty {
-//                    if currentFilter != nil {
-//                        state = .loaded(ViewData(products: []))
-//                    }
-//                    return
-//                }
-//                
-//                if products.count < pagination.limit {
-//                    pagination.totalCount = pagination.offset + products.count
-//                }
-//                pagination.nextPage()
-//                let newViewModels = getItemViewModels(from: products)
-//                if case .loaded(let existingData) = state {
-//                    let allProducts = existingData.products + newViewModels
-//                    state = .loaded(ViewData(products: allProducts))
-//                } else {
-//                    state = .loaded(ViewData(products: newViewModels))
-//                }
-//            } catch {
-//                state = .error(error.localizedDescription)
-//            }
-//        }
-//    }
-
     
     func getItemViewModels(from products: [ProductDTO]) -> [ProductItemViewModel] {
         return products.map { product in

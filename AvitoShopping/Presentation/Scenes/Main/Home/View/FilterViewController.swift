@@ -12,7 +12,16 @@ class FilterViewController: UIViewController {
     // Closure to pass the selected filter back
     var onApplyFilter: ((ProductFilter) -> Void)?
 
-    // MARK: UI Elements
+    // MARK: - UI Elements
+
+    private let titleTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "Title"
+        tf.borderStyle = .roundedRect
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        return tf
+    }()
+    
     private let categoriesTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "All Categories"
@@ -83,12 +92,19 @@ class FilterViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "Filters"
+        navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .white
         setupUI()
     }
     
     private func setupUI() {
-        // Setup collection view with custom layout
+        // Add title text field for filtering by title
+        view.addSubview(titleTextField)
+        
+        // Add "All Categories" title
+        view.addSubview(categoriesTitleLabel)
+        
+        // Setup collection view with custom layout (using your CardFlowLayout)
         let layout = CardFlowLayout()
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -99,39 +115,46 @@ class FilterViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
-        
-        // Add all subviews
-        view.addSubview(categoriesTitleLabel)
         view.addSubview(collectionView)
+        
+        // Add "Prices" title label and prices stack view
         view.addSubview(pricesTitleLabel)
         view.addSubview(pricesStackView)
+        
+        // Add Apply Filter button
         view.addSubview(applyButton)
         
         // Layout constraints
         NSLayoutConstraint.activate([
-            // Categories title label at the top
-            categoriesTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            // Title text field at the very top
+            titleTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            titleTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            titleTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            titleTextField.heightAnchor.constraint(equalToConstant: 40),
+            
+            // "All Categories" title below title text field
+            categoriesTitleLabel.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 20),
             categoriesTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoriesTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Collection view below categories title
+            // Collection view below the categories title
             collectionView.topAnchor.constraint(equalTo: categoriesTitleLabel.bottomAnchor, constant: 10),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.heightAnchor.constraint(equalToConstant: 80),
             
-            // Prices title label below collection view
+            // "Prices" title below collection view
             pricesTitleLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
             pricesTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             pricesTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Horizontal stack view for price fields below prices title
+            // Prices stack view (side by side text fields) below prices title
             pricesStackView.topAnchor.constraint(equalTo: pricesTitleLabel.bottomAnchor, constant: 10),
             pricesStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             pricesStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             pricesStackView.heightAnchor.constraint(equalToConstant: 40),
             
-            // Apply button at the bottom
+            // Apply Filter button below the prices stack view
             applyButton.topAnchor.constraint(equalTo: pricesStackView.bottomAnchor, constant: 20),
             applyButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             applyButton.heightAnchor.constraint(equalToConstant: 44)
@@ -140,7 +163,7 @@ class FilterViewController: UIViewController {
     
     @objc private func applyFilterAction() {
         let filter = ProductFilter(
-            title: nil,
+            title: titleTextField.text,
             priceMin: Double(priceMinTextField.text ?? ""),
             priceMax: Double(priceMaxTextField.text ?? ""),
             categoryId: selectedCategoryId,

@@ -51,16 +51,31 @@ class ItemsViewController: UIViewController {
         }
     }
     
+//    private func setupSearchController() {
+//        let searchController = UISearchController(searchResultsController: nil)
+//        searchController.searchBar.placeholder = "Search products"
+//        // Настраиваем кнопку фильтра справа в поисковой строке через accessory view, если нужно,
+//        // либо используем navigationItem.rightBarButtonItem:
+//        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
+//                                                            style: .plain,
+//                                                            target: self,
+//                                                            action: #selector(filterButtonTapped))
+//    }
+    
     private func setupSearchController() {
-        let searchController = UISearchController(searchResultsController: nil)
-        searchController.searchBar.placeholder = "Search products"
-        // Настраиваем кнопку фильтра справа в поисковой строке через accessory view, если нужно,
-        // либо используем navigationItem.rightBarButtonItem:
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
-                                                            style: .plain,
-                                                            target: self,
-                                                            action: #selector(filterButtonTapped))
-    }
+            // Create a search controller and assign it to the navigation item
+            let searchController = UISearchController(searchResultsController: nil)
+            searchController.searchBar.placeholder = "Search products"
+            searchController.searchBar.delegate = self  // Set self as delegate
+            navigationItem.searchController = searchController
+            navigationItem.hidesSearchBarWhenScrolling = false
+            
+            // Optionally, keep the filter button on the right
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
+                                                                style: .plain,
+                                                                target: self,
+                                                                action: #selector(filterButtonTapped))
+        }
     
     @objc private func filterButtonTapped() {
         // Представляем экран фильтра (как full screen или bottom sheet)
@@ -96,6 +111,36 @@ class ItemsViewController: UIViewController {
         ])
     }
 }
+
+extension ItemsViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        // Clear search text and load unfiltered products.
+        searchBar.text = ""
+        viewModel.clearFilter()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // Update the current filter's title and reload data.
+        var filter = ProductFilter(title: searchText,
+                                   priceMin: nil,
+                                   priceMax: nil,
+                                   categoryId: nil,
+                                   offset: 0,
+                                   limit: 10)
+        // If there's an existing filter (applied via FilterViewController), merge it here:
+        if let current = viewModel.currentFilter {
+            filter = ProductFilter(title: searchText,
+                                   priceMin: current.priceMin,
+                                   priceMax: current.priceMax,
+                                   categoryId: current.categoryId,
+                                   offset: 0,
+                                   limit: 10)
+        }
+        viewModel.applyFilter(filter)
+    }
+}
+
+
 
 extension ItemsViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -147,124 +192,6 @@ extension ItemsViewController: UICollectionViewDelegate {
     }
 }
 
-//class FilterViewController: UIViewController {
-//
-//    // Closure to pass the selected filter back
-//    var onApplyFilter: ((ProductFilter) -> Void)?
-//
-//    // Collection view for categories
-//    private var collectionView: UICollectionView!
-//    // Two text fields for price range input
-//    private var priceMinTextField: UITextField!
-//    private var priceMaxTextField: UITextField!
-//    // Apply Filter button
-//    private var applyButton: UIButton!
-//    
-//    // Sample categories – you could replace this with real data
-//    private let categories: [Category] = [
-//        Category(id: 1, name: "Clothes", image: ""),
-//        Category(id: 2, name: "Electronics", image: ""),
-//        Category(id: 3, name: "Home", image: ""),
-//        Category(id: 4, name: "Toys", image: "")
-//    ]
-//    
-//    // Currently selected category id (if any)
-//    private var selectedCategoryId: Int?
-//    
-//    override func viewDidLoad() {
-//        super.viewDidLoad()
-//        view.backgroundColor = .white
-//        setupUI()
-//    }
-//    
-//    private func setupUI() {
-//        // --- Setup category collection view ---
-//        let layout = UICollectionViewFlowLayout()
-//        layout.scrollDirection = .horizontal
-//        layout.minimumLineSpacing = 10
-//        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-//        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-//        collectionView.translatesAutoresizingMaskIntoConstraints = false
-//        collectionView.backgroundColor = .white
-//        collectionView.dataSource = self
-//        collectionView.delegate = self
-//        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: "CategoryCell")
-//        view.addSubview(collectionView)
-//        
-//        // --- Setup price text fields ---
-//        priceMinTextField = UITextField()
-//        priceMinTextField.translatesAutoresizingMaskIntoConstraints = false
-//        priceMinTextField.placeholder = "Min Price"
-//        priceMinTextField.borderStyle = .roundedRect
-//        priceMinTextField.keyboardType = .numberPad
-//        view.addSubview(priceMinTextField)
-//        
-//        priceMaxTextField = UITextField()
-//        priceMaxTextField.translatesAutoresizingMaskIntoConstraints = false
-//        priceMaxTextField.placeholder = "Max Price"
-//        priceMaxTextField.borderStyle = .roundedRect
-//        priceMaxTextField.keyboardType = .numberPad
-//        view.addSubview(priceMaxTextField)
-//        
-//        // --- Setup Apply Filter button ---
-//        applyButton = UIButton(type: .system)
-//        applyButton.translatesAutoresizingMaskIntoConstraints = false
-//        applyButton.setTitle("Apply Filter", for: .normal)
-//        applyButton.addTarget(self, action: #selector(applyFilterAction), for: .touchUpInside)
-//        view.addSubview(applyButton)
-//        
-//        // --- Layout constraints ---
-//        NSLayoutConstraint.activate([
-//            // Collection view at top
-//            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-//            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-//            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-//            collectionView.heightAnchor.constraint(equalToConstant: 80),
-//            
-//            // Price text fields below collection view
-//            priceMinTextField.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
-//            priceMinTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-//            priceMinTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-//            priceMinTextField.heightAnchor.constraint(equalToConstant: 40),
-//            
-//            priceMaxTextField.topAnchor.constraint(equalTo: priceMinTextField.bottomAnchor, constant: 10),
-//            priceMaxTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-//            priceMaxTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-//            priceMaxTextField.heightAnchor.constraint(equalToConstant: 40),
-//            
-//            // Apply button at the bottom
-//            applyButton.topAnchor.constraint(equalTo: priceMaxTextField.bottomAnchor, constant: 20),
-//            applyButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-//            applyButton.heightAnchor.constraint(equalToConstant: 44)
-//        ])
-//    }
-//    
-//    @objc private func applyFilterAction() {
-//        // Create a ProductFilter using values from UI
-//        let filter = ProductFilter(title: nil,
-//                                   priceMin: Double(priceMinTextField.text ?? ""),
-//                                   priceMax: Double(priceMaxTextField.text ?? ""),
-//                                   categoryId: selectedCategoryId,
-//                                   offset: 0,
-//                                   limit: 10)
-//        // Instantiate the network configuration for filtering
-//        let config = ProductNetworkConfig.filteredProducts(title: filter.title,
-//                                                           priceMin: filter.priceMin,
-//                                                           priceMax: filter.priceMax,
-//                                                           categoryId: filter.categoryId,
-//                                                           offset: filter.offset,
-//                                                           limit: filter.limit)
-//        // Construct the full URL and print it
-//        let fullURL = "https://api.escuelajs.co/api/v1/" + config.path + config.endPoint
-//        print("Full URL: \(fullURL)")
-//        
-//        // Pass the filter back using the onApplyFilter closure
-//        onApplyFilter?(filter)
-//        dismiss(animated: true)
-//    }
-//
-//}
-
 class CategoryCell: UICollectionViewCell {
     static let reuseIdentifier = "CategoryCell"
     
@@ -306,189 +233,3 @@ class CategoryCell: UICollectionViewCell {
         titleLabel.text = category.name
     }
 }
-
-//extension FilterViewController: UICollectionViewDataSource {
-//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return categories.count  // assuming you have a categories array
-//    }
-//    
-//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as? CategoryCell else {
-//            return UICollectionViewCell()
-//        }
-//        let category = categories[indexPath.item]
-//        cell.configure(with: category)
-//        return cell
-//    }
-//}
-//
-//extension FilterViewController: UICollectionViewDelegate {
-//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        // Handle selection of category
-//        let category = categories[indexPath.item]
-//        selectedCategoryId = category.id
-//    }
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//            return CGSize(
-//                width: (popular_brands[indexPath.item].size(
-//                    withAttributes:
-//                        [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 14)]).width) + 25,
-//                    height: 40
-//                )
-//        }
-//}
-
-//class FilterViewController: UIViewController {
-//    
-//    // Closure to pass the selected filter back
-//    var onApplyFilter: ((ProductFilter) -> Void)?
-//    
-//    // Collection view for categories with custom layout
-//    private var collectionView: UICollectionView!
-//    
-//    // Two text fields for price range input
-//    private var priceMinTextField: UITextField!
-//    private var priceMaxTextField: UITextField!
-//    
-//    // Apply Filter button
-//    private var applyButton: UIButton!
-//    
-//    // Sample categories – replace with real data if needed
-//    private let categories: [Category] = [
-//        Category(id: 1, name: "Clothes", image: ""),
-//        Category(id: 2, name: "Electronics", image: ""),
-//        Category(id: 3, name: "Home", image: ""),
-//        Category(id: 4, name: "Toys", image: "")
-//    ]
-//    
-//    // Currently selected category id (if any)
-//    private var selectedCategoryId: Int?
-//    
-//    override func viewDidLoad() {
-//        super.viewDidLoad()
-//        view.backgroundColor = .white
-//        setupUI()
-//    }
-//    
-//    private func setupUI() {
-//        // --- Setup category collection view with custom layout ---
-//        let layout = CardFlowLayout()
-//        layout.scrollDirection = .horizontal
-//        layout.sectionInset = UIEdgeInsets(top: 10, left: 5, bottom: 10, right: 5)
-//        layout.minimumInteritemSpacing = 15
-//        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-//        collectionView.translatesAutoresizingMaskIntoConstraints = false
-//        collectionView.backgroundColor = .white
-//        collectionView.dataSource = self
-//        collectionView.delegate = self
-//        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
-//        view.addSubview(collectionView)
-//        
-//        // --- Setup price text fields ---
-//        priceMinTextField = UITextField()
-//        priceMinTextField.translatesAutoresizingMaskIntoConstraints = false
-//        priceMinTextField.placeholder = "Min Price"
-//        priceMinTextField.borderStyle = .roundedRect
-//        priceMinTextField.keyboardType = .numberPad
-//        view.addSubview(priceMinTextField)
-//        
-//        priceMaxTextField = UITextField()
-//        priceMaxTextField.translatesAutoresizingMaskIntoConstraints = false
-//        priceMaxTextField.placeholder = "Max Price"
-//        priceMaxTextField.borderStyle = .roundedRect
-//        priceMaxTextField.keyboardType = .numberPad
-//        view.addSubview(priceMaxTextField)
-//        
-//        // --- Setup Apply Filter button ---
-//        applyButton = UIButton(type: .system)
-//        applyButton.translatesAutoresizingMaskIntoConstraints = false
-//        applyButton.setTitle("Apply Filter", for: .normal)
-//        applyButton.addTarget(self, action: #selector(applyFilterAction), for: .touchUpInside)
-//        view.addSubview(applyButton)
-//        
-//        // --- Layout constraints ---
-//        NSLayoutConstraint.activate([
-//            // Collection view at top
-//            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-//            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-//            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-//            collectionView.heightAnchor.constraint(equalToConstant: 80),
-//            
-//            // Price text fields below collection view
-//            priceMinTextField.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
-//            priceMinTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-//            priceMinTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-//            priceMinTextField.heightAnchor.constraint(equalToConstant: 40),
-//            
-//            priceMaxTextField.topAnchor.constraint(equalTo: priceMinTextField.bottomAnchor, constant: 10),
-//            priceMaxTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-//            priceMaxTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-//            priceMaxTextField.heightAnchor.constraint(equalToConstant: 40),
-//            
-//            // Apply button at the bottom
-//            applyButton.topAnchor.constraint(equalTo: priceMaxTextField.bottomAnchor, constant: 20),
-//            applyButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-//            applyButton.heightAnchor.constraint(equalToConstant: 44)
-//        ])
-//    }
-//    
-//    @objc private func applyFilterAction() {
-//        // Create a ProductFilter using values from UI
-//        let filter = ProductFilter(
-//            title: nil,
-//            priceMin: Double(priceMinTextField.text ?? ""),
-//            priceMax: Double(priceMaxTextField.text ?? ""),
-//            categoryId: selectedCategoryId,
-//            offset: 0,
-//            limit: 10
-//        )
-//        // (Optional) Print full URL for debugging:
-//        let config = ProductNetworkConfig.filteredProducts(
-//            title: filter.title,
-//            priceMin: filter.priceMin,
-//            priceMax: filter.priceMax,
-//            categoryId: filter.categoryId,
-//            offset: filter.offset,
-//            limit: filter.limit
-//        )
-//        let fullURL = "https://api.escuelajs.co/api/v1/" + config.path + config.endPoint
-//        print("Full URL: \(fullURL)")
-//        
-//        onApplyFilter?(filter)
-//        dismiss(animated: true)
-//    }
-//}
-//
-//extension FilterViewController: UICollectionViewDataSource {
-//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return categories.count
-//    }
-//    
-//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier,
-//                                                            for: indexPath) as? CategoryCell else {
-//            return UICollectionViewCell()
-//        }
-//        let category = categories[indexPath.item]
-//        cell.configure(with: category)
-//        return cell
-//    }
-//}
-//
-//extension FilterViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
-//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let category = categories[indexPath.item]
-//        selectedCategoryId = category.id
-//    }
-//    
-//    // Dynamic sizing based on text content.
-//    func collectionView(_ collectionView: UICollectionView,
-//                        layout collectionViewLayout: UICollectionViewLayout,
-//                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-//        let category = categories[indexPath.item]
-//        let text = category.name
-//        let font = UIFont.systemFont(ofSize: 14)
-//        let width = text.size(withAttributes: [NSAttributedString.Key.font: font]).width + 25
-//        return CGSize(width: width, height: 40)
-//    }
-//}
