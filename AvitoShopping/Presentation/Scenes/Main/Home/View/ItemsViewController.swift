@@ -12,6 +12,9 @@ class ItemsViewController: UIViewController {
     private let viewModel: ItemsViewModel
     private var items: [ProductItemViewModel] = []
     
+    private var recentSearchesVC: RecentSearchesViewController!
+    private var searchController: UISearchController!
+    
     init(viewModel: ItemsViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -51,37 +54,38 @@ class ItemsViewController: UIViewController {
         }
     }
     
-//    private func setupSearchController() {
-//        let searchController = UISearchController(searchResultsController: nil)
-//        searchController.searchBar.placeholder = "Search products"
-//        // Настраиваем кнопку фильтра справа в поисковой строке через accessory view, если нужно,
-//        // либо используем navigationItem.rightBarButtonItem:
-//        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
-//                                                            style: .plain,
-//                                                            target: self,
-//                                                            action: #selector(filterButtonTapped))
-//    }
-    
     private func setupSearchController() {
-            // Create a search controller and assign it to the navigation item
-            let searchController = UISearchController(searchResultsController: nil)
-            searchController.searchBar.placeholder = "Search products"
-            searchController.searchBar.delegate = self  // Set self as delegate
-            navigationItem.searchController = searchController
-            navigationItem.hidesSearchBarWhenScrolling = false
-            
-            // Optionally, keep the filter button on the right
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
-                                                                style: .plain,
-                                                                target: self,
-                                                                action: #selector(filterButtonTapped))
+        recentSearchesVC = RecentSearchesViewController()
+        recentSearchesVC.onSelectQuery = { [weak self] query in
+            // When a recent query is tapped, save it, update the filter and dismiss.
+            RecentSearchManager.shared.addSearchQuery(query)
+            let filter = ProductFilter(title: query,
+                                       priceMin: nil,
+                                       priceMax: nil,
+                                       categoryId: nil,
+                                       offset: 0,
+                                       limit: 10)
+            self?.viewModel.applyFilter(filter)
+            self?.searchController.isActive = false
         }
+        
+        searchController = UISearchController(searchResultsController: recentSearchesVC)
+        searchController.searchBar.placeholder = "Search products"
+        searchController.searchBar.delegate = self
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        
+        // Also keep the filter button on the right.
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
+                                                            style: .plain,
+                                                            target: self,
+                                                            action: #selector(filterButtonTapped))
+    }
     
     @objc private func filterButtonTapped() {
-        // Представляем экран фильтра (как full screen или bottom sheet)
         let filterVC = FilterViewController()
         // Можно установить modalPresentationStyle = .pageSheet или .formSheet или использовать UISheetPresentationController (iOS 15+)
-        filterVC.modalPresentationStyle = .pageSheet
+        filterVC.modalPresentationStyle = .formSheet
         filterVC.onApplyFilter = { [weak self] filter in
             // Передаем выбранные параметры в viewModel
             self?.viewModel.applyFilter(filter)
@@ -112,31 +116,32 @@ class ItemsViewController: UIViewController {
     }
 }
 
+extension ItemsViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        if let recentVC = searchController.searchResultsController as? RecentSearchesViewController {
+            recentVC.tableView.reloadData()
+        }
+    }
+}
+
 extension ItemsViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        // Clear search text and load unfiltered products.
         searchBar.text = ""
         viewModel.clearFilter()
     }
     
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        // Update the current filter's title and reload data.
-        var filter = ProductFilter(title: searchText,
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let query = searchBar.text, !query.isEmpty else { return }
+        RecentSearchManager.shared.addSearchQuery(query)
+        let filter = ProductFilter(title: query,
                                    priceMin: nil,
                                    priceMax: nil,
                                    categoryId: nil,
                                    offset: 0,
                                    limit: 10)
-        // If there's an existing filter (applied via FilterViewController), merge it here:
-        if let current = viewModel.currentFilter {
-            filter = ProductFilter(title: searchText,
-                                   priceMin: current.priceMin,
-                                   priceMax: current.priceMax,
-                                   categoryId: current.categoryId,
-                                   offset: 0,
-                                   limit: 10)
-        }
         viewModel.applyFilter(filter)
+        searchController.isActive = false
+        searchBar.resignFirstResponder()
     }
 }
 
@@ -190,46 +195,11 @@ extension ItemsViewController: UICollectionViewDelegate {
             viewModel.handle(.willDisplayLastItem)
         }
     }
-}
-
-class CategoryCell: UICollectionViewCell {
-    static let reuseIdentifier = "CategoryCell"
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 14, weight: .medium)
-        return label
-    }()
-    
-    override var isSelected: Bool {
-        didSet {
-            contentView.backgroundColor = isSelected ? .systemBlue : .lightGray
-            titleLabel.textColor = isSelected ? .white : .black
-        }
-    }
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        contentView.layer.cornerRadius = 8
-        contentView.layer.masksToBounds = true
-        contentView.backgroundColor = .lightGray
-        contentView.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-        ])
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    func configure(with category: Category) {
-        titleLabel.text = category.name
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // При выборе товара вызываем событие с передачей соответствующего ProductDTO.
+        // Предполагаем, что у ProductItemViewModel есть метод/свойство для преобразования в ProductDTO,
+        // либо мы храним исходный ProductDTO вместе с ним.
+        let productDTO = items[indexPath.item].originalDTO
+        viewModel.handle(.onSelectItem(productDTO))
     }
 }

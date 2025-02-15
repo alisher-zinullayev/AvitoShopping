@@ -9,35 +9,34 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
-    //    internal var window: UIWindow?
-    //    //    private var appCoordinator: AppCoordinator?
-    //
-    //    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-    //        guard let windowScene = (scene as? UIWindowScene) else { return }
-    //
-    //        window = UIWindow(frame: windowScene.coordinateSpace.bounds)
-    //        window?.windowScene = windowScene
-    //
-    //        //        let navigationController = UINavigationController()
-    //        //        appCoordinator = AppCoordinator(navigationController: navigationController)
-    //        //        appCoordinator?.start()
-    //
-    //        //        window?.rootViewController = navigationController
-    //        let networkService = NetworkService()
-    //        // 2. Репозиторий, использующий NetworkService и пагинацию
-    //        let productRepository = ProductRepository(networkService: networkService)
-    //        // 3. Use Case для получения списка товаров
-    //        let fetchProductsUseCase = FetchProductsUseCase(repository: productRepository)
-    //        // 4. ViewModel для экрана списка товаров (Items)
-    //        let itemsViewModel = ItemsViewModel(coordinator: <#any ItemsCoordinatorProtocol#>, fetchProductsUseCase: fetchProductsUseCase)
-    //        // 5. Создаем ItemsViewController (UIKit), внедряя в него ViewModel
-    //        let itemsViewController = ItemsViewController(viewModel: itemsViewModel)
-    //        window?.rootViewController = itemsViewController
-    //        window?.makeKeyAndVisible()
-    //    }
-    
     internal var window: UIWindow?
     
+//    func scene(_ scene: UIScene,
+//               willConnectTo session: UISceneSession,
+//               options connectionOptions: UIScene.ConnectionOptions) {
+//        guard let windowScene = scene as? UIWindowScene else { return }
+//        
+//        // Create network layer dependencies
+//        let networkService = NetworkService()
+//        let productRepository = ProductRepository(networkService: networkService)
+//        let favoriteProductRepository = FavoriteProductRepositoryImpl()
+//        let shoppingCartRepository = ShoppingCartRepositoryImpl()
+//        let fetchProductsUseCase = FetchProductsUseCase(repository: productRepository)
+//        let addFavoriteUseCase = AddFavoriteProductUseCase(repository: favoriteProductRepository)
+//        let addToCartUseCase = AddToCartUseCase(repository: shoppingCartRepository)
+//        // Initialize the view model without a coordinator
+//        let viewModel = ItemsViewModel(fetchProductsUseCase: fetchProductsUseCase,
+//                                       addFavoriteUseCase: addFavoriteUseCase,
+//                                       addToCartUseCase: addToCartUseCase)
+//        
+//        // Create the ItemsViewController with the view model
+//        let itemsViewController = ItemsViewController(viewModel: viewModel)
+//        let navigationController = UINavigationController(rootViewController: itemsViewController)
+//        
+//        window = UIWindow(windowScene: windowScene)
+//        window?.rootViewController = navigationController
+//        window?.makeKeyAndVisible()
+//    }
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
                options connectionOptions: UIScene.ConnectionOptions) {
@@ -51,19 +50,28 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let fetchProductsUseCase = FetchProductsUseCase(repository: productRepository)
         let addFavoriteUseCase = AddFavoriteProductUseCase(repository: favoriteProductRepository)
         let addToCartUseCase = AddToCartUseCase(repository: shoppingCartRepository)
-        // Initialize the view model without a coordinator
-        let viewModel = ItemsViewModel(fetchProductsUseCase: fetchProductsUseCase,
+        
+        // Create a navigation controller
+        let navigationController = UINavigationController()
+        
+        // Create the coordinator and pass the navigation controller
+        let coordinator = ItemsCoordinator(navigationController: navigationController)
+        
+        // Initialize the view model including the coordinator
+        let viewModel = ItemsViewModel(coordinator: coordinator,
+                                       fetchProductsUseCase: fetchProductsUseCase,
                                        addFavoriteUseCase: addFavoriteUseCase,
                                        addToCartUseCase: addToCartUseCase)
         
         // Create the ItemsViewController with the view model
         let itemsViewController = ItemsViewController(viewModel: viewModel)
-        let navigationController = UINavigationController(rootViewController: itemsViewController)
+        navigationController.viewControllers = [itemsViewController]
         
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
     }
+
     
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.

@@ -9,7 +9,6 @@ import UIKit
 
 class FilterViewController: UIViewController {
 
-    // Closure to pass the selected filter back
     var onApplyFilter: ((ProductFilter) -> Void)?
 
     // MARK: - UI Elements
@@ -170,17 +169,6 @@ class FilterViewController: UIViewController {
             offset: 0,
             limit: 10
         )
-        // Debug: Print the full URL for the filter
-        let config = ProductNetworkConfig.filteredProducts(
-            title: filter.title,
-            priceMin: filter.priceMin,
-            priceMax: filter.priceMax,
-            categoryId: filter.categoryId,
-            offset: filter.offset,
-            limit: filter.limit
-        )
-        let fullURL = "https://api.escuelajs.co/api/v1/" + config.path + config.endPoint
-        print("Full URL: \(fullURL)")
         
         onApplyFilter?(filter)
         dismiss(animated: true)

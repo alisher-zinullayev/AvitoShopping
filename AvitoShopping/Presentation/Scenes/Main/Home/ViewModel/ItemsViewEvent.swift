@@ -10,5 +10,5 @@ import Foundation
 enum ItemsViewEvent {
     case onAppear
     case willDisplayLastItem
-//    case onSelectItem(Int)  // product id
+    case onSelectItem(ProductDTO)
 }

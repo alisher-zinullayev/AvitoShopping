@@ -24,7 +24,7 @@ class ItemCell: UICollectionViewCell {
         let button = UIButton()
         button.setImage(UIImage(systemName: "heart.fill"), for: .normal)
         button.tintColor = .gray
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.6) // optional: make a translucent background
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.6)
         button.layer.cornerRadius = 20
         button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false

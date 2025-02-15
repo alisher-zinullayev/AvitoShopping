@@ -24,4 +24,6 @@ struct ProductItemViewModel {
     let description: String
     let price: Double
     let imageUrl: String
+    
+    let originalDTO: ProductDTO
 }
