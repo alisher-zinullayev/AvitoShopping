@@ -8,13 +8,13 @@
 import UIKit
 
 class CategoryCell: UICollectionViewCell {
-    static let reuseIdentifier = "CategoryCell"
+    static let identifier = String(describing: CategoryCell.self)
     
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
-        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         return label
     }()
     
@@ -27,6 +27,10 @@ class CategoryCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setupUI()
+    }
+    
+    private func setupUI() {
         contentView.layer.cornerRadius = 8
         contentView.layer.masksToBounds = true
         contentView.backgroundColor = .lightGray

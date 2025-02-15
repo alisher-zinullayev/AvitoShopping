@@ -7,57 +7,21 @@
 
 import UIKit
 
-class FilterViewController: UIViewController {
-
+final class FilterViewController: UIViewController {
     var onApplyFilter: ((ProductFilter) -> Void)?
-
-    // MARK: - UI Elements
-
-    private let titleTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Title"
-        tf.borderStyle = .roundedRect
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
     
-    private let categoriesTitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "All Categories"
-        label.font = UIFont.boldSystemFont(ofSize: 20)
-        label.textAlignment = .left
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+    private var selectedCategoryId: Int?
+    private let viewModel = FilterViewModel()
     
+    private let titleTextField = CustomTextField(placeholder: "Title")
+    private let categoriesTitleLabel = CustomLabel(text: "All Categories")
     private var collectionView: UICollectionView!
-    
-    private let pricesTitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Prices"
-        label.font = UIFont.boldSystemFont(ofSize: 20)
-        label.textAlignment = .left
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private var priceMinTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Min Price"
-        tf.borderStyle = .roundedRect
-        tf.keyboardType = .numberPad
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
-    
-    private var priceMaxTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Max Price"
-        tf.borderStyle = .roundedRect
-        tf.keyboardType = .numberPad
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
+    private let pricesTitleLabel = CustomLabel(text: "Prices")
+    private let priceMinTextField = CustomTextField(placeholder: "Min Price",
+                                                    keyboardType: .numberPad)
+    private let priceMaxTextField = CustomTextField(placeholder: "Max Price",
+                                                    keyboardType: .numberPad)
+    private lazy var applyButton = CustomButton(title: "Apply Filter")
     
     private lazy var pricesStackView: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [priceMinTextField, priceMaxTextField])
@@ -68,25 +32,13 @@ class FilterViewController: UIViewController {
         return stack
     }()
     
-    private lazy var applyButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Apply Filter", for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(applyFilterAction), for: .touchUpInside)
-        return button
-    }()
     
-    // Sample categories – replace with your real data as needed.
     private let categories: [Category] = [
         Category(id: 1, name: "Clothes", image: ""),
         Category(id: 2, name: "Electronics", image: ""),
         Category(id: 3, name: "Home", image: ""),
         Category(id: 4, name: "Toys", image: "")
     ]
-    
-    // Currently selected category id (if any)
-    private var selectedCategoryId: Int?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -96,14 +48,70 @@ class FilterViewController: UIViewController {
         setupUI()
     }
     
+    @objc private func textFieldDidChange(_ textField: UITextField) {
+        if textField == titleTextField {
+            viewModel.title = textField.text
+        } else if textField == priceMinTextField {
+            viewModel.priceMin = textField.text
+        } else if textField == priceMaxTextField {
+            viewModel.priceMax = textField.text
+        }
+    }
+    
+    @objc private func applyFilterAction() {
+        viewModel.selectedCategoryId = selectedCategoryId
+        let filter = viewModel.currentFilter()
+        onApplyFilter?(filter)
+        dismiss(animated: true)
+    }
+}
+
+extension FilterViewController {
     private func setupUI() {
-        // Add title text field for filtering by title
         view.addSubview(titleTextField)
-        
-        // Add "All Categories" title
         view.addSubview(categoriesTitleLabel)
+        setupCollectionView()
+        view.addSubview(pricesTitleLabel)
+        view.addSubview(pricesStackView)
+        view.addSubview(applyButton)
         
-        // Setup collection view with custom layout (using your CardFlowLayout)
+        NSLayoutConstraint.activate([
+            titleTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            titleTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            titleTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            titleTextField.heightAnchor.constraint(equalToConstant: 40),
+            
+            categoriesTitleLabel.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 20),
+            categoriesTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            categoriesTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            collectionView.topAnchor.constraint(equalTo: categoriesTitleLabel.bottomAnchor, constant: 10),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.heightAnchor.constraint(equalToConstant: 80),
+            
+            pricesTitleLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
+            pricesTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            pricesTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            pricesStackView.topAnchor.constraint(equalTo: pricesTitleLabel.bottomAnchor, constant: 10),
+            pricesStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            pricesStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            pricesStackView.heightAnchor.constraint(equalToConstant: 40),
+            
+            applyButton.topAnchor.constraint(equalTo: pricesStackView.bottomAnchor, constant: 20),
+            applyButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            applyButton.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        
+        titleTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        priceMinTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        priceMaxTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        
+        applyButton.addTarget(self, action: #selector(applyFilterAction), for: .touchUpInside)
+    }
+    
+    private func setupCollectionView() {
         let layout = CardFlowLayout()
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -113,65 +121,8 @@ class FilterViewController: UIViewController {
         collectionView.backgroundColor = .white
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.identifier)
         view.addSubview(collectionView)
-        
-        // Add "Prices" title label and prices stack view
-        view.addSubview(pricesTitleLabel)
-        view.addSubview(pricesStackView)
-        
-        // Add Apply Filter button
-        view.addSubview(applyButton)
-        
-        // Layout constraints
-        NSLayoutConstraint.activate([
-            // Title text field at the very top
-            titleTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            titleTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            titleTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            titleTextField.heightAnchor.constraint(equalToConstant: 40),
-            
-            // "All Categories" title below title text field
-            categoriesTitleLabel.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 20),
-            categoriesTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            categoriesTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
-            // Collection view below the categories title
-            collectionView.topAnchor.constraint(equalTo: categoriesTitleLabel.bottomAnchor, constant: 10),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: 80),
-            
-            // "Prices" title below collection view
-            pricesTitleLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
-            pricesTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            pricesTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
-            // Prices stack view (side by side text fields) below prices title
-            pricesStackView.topAnchor.constraint(equalTo: pricesTitleLabel.bottomAnchor, constant: 10),
-            pricesStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            pricesStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            pricesStackView.heightAnchor.constraint(equalToConstant: 40),
-            
-            // Apply Filter button below the prices stack view
-            applyButton.topAnchor.constraint(equalTo: pricesStackView.bottomAnchor, constant: 20),
-            applyButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            applyButton.heightAnchor.constraint(equalToConstant: 44)
-        ])
-    }
-    
-    @objc private func applyFilterAction() {
-        let filter = ProductFilter(
-            title: titleTextField.text,
-            priceMin: Double(priceMinTextField.text ?? ""),
-            priceMax: Double(priceMaxTextField.text ?? ""),
-            categoryId: selectedCategoryId,
-            offset: 0,
-            limit: 10
-        )
-        
-        onApplyFilter?(filter)
-        dismiss(animated: true)
     }
 }
 
@@ -181,7 +132,7 @@ extension FilterViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as? CategoryCell else {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.identifier, for: indexPath) as? CategoryCell else {
             return UICollectionViewCell()
         }
         let category = categories[indexPath.item]

@@ -7,10 +7,10 @@
 
 import UIKit
 
-class ItemsViewController: UIViewController {
+final class ItemsViewController: UIViewController {
     private var collectionView: UICollectionView!
     private let viewModel: ItemsViewModel
-    private var items: [ProductItemViewModel] = []
+    private var items: [ProductItemViewModel] = [] // move to view model
     
     private var recentSearchesVC: RecentSearchesViewController!
     private var searchController: UISearchController!
@@ -57,7 +57,6 @@ class ItemsViewController: UIViewController {
     private func setupSearchController() {
         recentSearchesVC = RecentSearchesViewController()
         recentSearchesVC.onSelectQuery = { [weak self] query in
-            // When a recent query is tapped, save it, update the filter and dismiss.
             RecentSearchManager.shared.addSearchQuery(query)
             let filter = ProductFilter(title: query,
                                        priceMin: nil,
@@ -75,7 +74,6 @@ class ItemsViewController: UIViewController {
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         
-        // Also keep the filter button on the right.
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "line.horizontal.3.decrease.circle"),
                                                             style: .plain,
                                                             target: self,
@@ -84,10 +82,8 @@ class ItemsViewController: UIViewController {
     
     @objc private func filterButtonTapped() {
         let filterVC = FilterViewController()
-        // Можно установить modalPresentationStyle = .pageSheet или .formSheet или использовать UISheetPresentationController (iOS 15+)
         filterVC.modalPresentationStyle = .formSheet
         filterVC.onApplyFilter = { [weak self] filter in
-            // Передаем выбранные параметры в viewModel
             self?.viewModel.applyFilter(filter)
         }
         present(filterVC, animated: true)
@@ -102,7 +98,7 @@ class ItemsViewController: UIViewController {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .systemBackground
-        collectionView.register(ItemCell.self, forCellWithReuseIdentifier: ItemCell.reuseIdentifier)
+        collectionView.register(ItemCell.self, forCellWithReuseIdentifier: ItemCell.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
         
@@ -154,16 +150,13 @@ extension ItemsViewController: UICollectionViewDataSource {
         
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemCell.reuseIdentifier,
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemCell.identifier,
                                                             for: indexPath) as? ItemCell else {
             return UICollectionViewCell()
         }
         let productViewModel = items[indexPath.item]
         cell.configure(with: productViewModel)
         cell.onFavoriteTapped = { [weak self] in
-            // In a real scenario, convert ProductItemViewModel back to Product model if needed.
-            // For demonstration, assume you have a method or mapping.
-            // self?.viewModel.favoriteButtonTapped(for: product)
             print("Favorite tapped for product id: \(productViewModel.imageUrl)")
         }
         cell.onAddToCartTapped = { [weak self] in
@@ -196,9 +189,6 @@ extension ItemsViewController: UICollectionViewDelegate {
         }
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // При выборе товара вызываем событие с передачей соответствующего ProductDTO.
-        // Предполагаем, что у ProductItemViewModel есть метод/свойство для преобразования в ProductDTO,
-        // либо мы храним исходный ProductDTO вместе с ним.
         let productDTO = items[indexPath.item].originalDTO
         viewModel.handle(.onSelectItem(productDTO))
     }

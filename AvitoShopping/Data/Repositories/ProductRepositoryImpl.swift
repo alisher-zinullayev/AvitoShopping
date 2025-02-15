@@ -25,6 +25,6 @@ final class ProductRepository: ProductRepositoryProtocol {
     }
     
     func getFilteredProductList(with config: NetworkConfig) async throws -> [ProductDTO] {
-            return try await networkService.request(with: config)
-        }
+        return try await networkService.request(with: config)
+    }
 }

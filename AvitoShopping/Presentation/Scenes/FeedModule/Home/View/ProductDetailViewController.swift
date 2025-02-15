@@ -10,7 +10,6 @@ import UIKit
 final class ProductDetailViewController: UIViewController {
     private let product: ProductDTO
     
-    // UI Elements
     private var imagesCollectionView: UICollectionView!
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
@@ -52,27 +51,23 @@ final class ProductDetailViewController: UIViewController {
     }
     
     private func setupLabels() {
-        // Title label: Bold and large
         titleLabel.text = product.title
         titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
         titleLabel.numberOfLines = 0
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(titleLabel)
         
-        // Description label
         descriptionLabel.text = product.description
         descriptionLabel.font = UIFont.systemFont(ofSize: 16)
         descriptionLabel.numberOfLines = 0
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(descriptionLabel)
         
-        // Price label
         priceLabel.text = "Price: \(product.price)$"
         priceLabel.font = UIFont.systemFont(ofSize: 18)
         priceLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(priceLabel)
         
-        // Category label
         categoryLabel.text = "Category: \(product.category.name)"
         categoryLabel.font = UIFont.systemFont(ofSize: 18)
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -81,27 +76,22 @@ final class ProductDetailViewController: UIViewController {
     
     private func layoutUI() {
         NSLayoutConstraint.activate([
-            // Images collection view at top
             imagesCollectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             imagesCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             imagesCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             imagesCollectionView.heightAnchor.constraint(equalToConstant: 200),
             
-            // Title label below images
             titleLabel.topAnchor.constraint(equalTo: imagesCollectionView.bottomAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Description label below title
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
             descriptionLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             descriptionLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             
-            // Price label below description
             priceLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 20),
             priceLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             
-            // Category label below price
             categoryLabel.topAnchor.constraint(equalTo: priceLabel.bottomAnchor, constant: 10),
             categoryLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             categoryLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor)
@@ -131,7 +121,6 @@ extension ProductDetailViewController: UICollectionViewDataSource, UICollectionV
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width = collectionView.frame.width * 0.8
-        // For example, make the cell square or adjust height as needed.
         return CGSize(width: width, height: width)
     }
 }
@@ -143,7 +132,7 @@ class ImageCell: UICollectionViewCell {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFit
         iv.clipsToBounds = true
-        iv.image = UIImage(systemName: "photo") // Placeholder image
+        iv.image = UIImage(systemName: "photo")
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
@@ -164,7 +153,6 @@ class ImageCell: UICollectionViewCell {
     }
     
     func configure(with urlString: String) {
-        // Use your UIImageView extension for loading images, which should handle errors and show a placeholder.
         imageView.loadImage(from: urlString)
     }
 }
@@ -199,7 +187,6 @@ class GalleryPageViewController: UIViewController {
             imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         
-        // Load the image (your UIImageView extension should handle errors/placeholder)
         imageView.loadImage(from: imageUrl)
     }
 }

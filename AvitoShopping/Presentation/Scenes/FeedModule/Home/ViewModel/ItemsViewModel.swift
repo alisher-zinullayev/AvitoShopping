@@ -7,34 +7,13 @@
 
 import Foundation
 
-protocol ItemsCoordinatorProtocol {
-    func showProductDetails(_ product: ProductDTO)
-}
-
-import UIKit
-
-final class ItemsCoordinator: ItemsCoordinatorProtocol {
-    private let navigationController: UINavigationController
-
-    init(navigationController: UINavigationController) {
-        self.navigationController = navigationController
-    }
-    
-    func showProductDetails(_ product: ProductDTO) {
-        // Создаем детальный экран для выбранного товара
-        let detailVC = ProductDetailViewController(product: product)
-        navigationController.pushViewController(detailVC, animated: true)
-    }
-}
-
-final class ItemsViewModel: ObservableObject {
+final class ItemsViewModel {
     private(set) var state: ItemsViewState = .idle {
         didSet {
             onStateChange?(state)
         }
     }
     
-    // Closure for binding state changes to the UI
     var onStateChange: ((ItemsViewState) -> Void)?
     
     private let fetchProductsUseCase: FetchProductsUseCaseProtocol
@@ -43,7 +22,7 @@ final class ItemsViewModel: ObservableObject {
     private let coordinator: ItemsCoordinatorProtocol
     
     private var pagination = Pagination()
-     var currentFilter: ProductFilter?  // Stores the active filter, if any.
+    var currentFilter: ProductFilter?
     
     init(coordinator: ItemsCoordinatorProtocol,
          fetchProductsUseCase: FetchProductsUseCaseProtocol,
@@ -55,7 +34,6 @@ final class ItemsViewModel: ObservableObject {
         self.addToCartUseCase = addToCartUseCase
     }
     
-    // Handle events from the view (e.g. onAppear, willDisplayLastItem)
     func handle(_ event: ItemsViewEvent) {
         switch event {
         case .onAppear:
@@ -67,24 +45,12 @@ final class ItemsViewModel: ObservableObject {
         }
     }
     
-    // Called when the user applies a filter
     func applyFilter(_ filter: ProductFilter) {
         currentFilter = filter
         pagination.reset()
         state = .loading
-        
         Task {
             do {
-                // For debugging: you might want to print the generated URL.
-                // let config = ProductNetworkConfig.filteredProducts(title: filter.title,
-                //                                                    priceMin: filter.priceMin,
-                //                                                    priceMax: filter.priceMax,
-                //                                                    categoryId: filter.categoryId,
-                //                                                    offset: filter.offset,
-                //                                                    limit: filter.limit)
-                // let fullURL = "https://api.escuelajs.co/api/v1/" + config.path + config.endPoint
-                // print("Filtered URL: \(fullURL)")
-                
                 let products = try await fetchProductsUseCase.executeFiltered(filter: filter)
                 if products.isEmpty {
                     state = .loaded(ViewData(products: []))
@@ -101,11 +67,8 @@ final class ItemsViewModel: ObservableObject {
             }
         }
     }
-}
-
-extension ItemsViewModel {
+    
     func clearFilter() {
-        // Clear any active filter.
         currentFilter = nil
         pagination.reset()
         state = .loading
@@ -124,21 +87,16 @@ extension ItemsViewModel {
             }
         }
     }
-}
-
-private extension ItemsViewModel {
-    func loadProducts() {
-        // If a filter is active, load filtered products instead.
+    
+    private func loadProducts() {
         if let filter = currentFilter {
             applyFilter(filter)
             return
         }
-        
         if case .idle = state {
             state = .loading
             pagination.reset()
         }
-        
         Task {
             do {
                 let products = try await fetchProductsUseCase.execute(offset: pagination.offset,
@@ -159,12 +117,11 @@ private extension ItemsViewModel {
         }
     }
     
-    func loadMore() {
+    private func loadMore() {
         Task {
             do {
                 let products: [ProductDTO]
                 if let filter = currentFilter {
-                    // Create a new filter with the current pagination values
                     let updatedFilter = ProductFilter(
                         title: filter.title,
                         priceMin: filter.priceMin,
@@ -178,7 +135,6 @@ private extension ItemsViewModel {
                     products = try await fetchProductsUseCase.execute(offset: pagination.offset,
                                                                       limit: pagination.limit)
                 }
-                // If no products were returned, don't update the state further.
                 if products.isEmpty { return }
                 if products.count < pagination.limit {
                     pagination.totalCount = pagination.offset + products.count
@@ -197,9 +153,8 @@ private extension ItemsViewModel {
         }
     }
     
-    func getItemViewModels(from products: [ProductDTO]) -> [ProductItemViewModel] {
+    private func getItemViewModels(from products: [ProductDTO]) -> [ProductItemViewModel] {
         return products.map { product in
-            // Clean the URL if necessary
             let rawURL = product.images.first ?? ""
             let cleanURL = rawURL.trimmingCharacters(in: CharacterSet(charactersIn: "[]\""))
             return ProductItemViewModel(
