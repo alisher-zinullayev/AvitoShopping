@@ -11,32 +11,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     internal var window: UIWindow?
     
-//    func scene(_ scene: UIScene,
-//               willConnectTo session: UISceneSession,
-//               options connectionOptions: UIScene.ConnectionOptions) {
-//        guard let windowScene = scene as? UIWindowScene else { return }
-//        
-//        // Create network layer dependencies
-//        let networkService = NetworkService()
-//        let productRepository = ProductRepository(networkService: networkService)
-//        let favoriteProductRepository = FavoriteProductRepositoryImpl()
-//        let shoppingCartRepository = ShoppingCartRepositoryImpl()
-//        let fetchProductsUseCase = FetchProductsUseCase(repository: productRepository)
-//        let addFavoriteUseCase = AddFavoriteProductUseCase(repository: favoriteProductRepository)
-//        let addToCartUseCase = AddToCartUseCase(repository: shoppingCartRepository)
-//        // Initialize the view model without a coordinator
-//        let viewModel = ItemsViewModel(fetchProductsUseCase: fetchProductsUseCase,
-//                                       addFavoriteUseCase: addFavoriteUseCase,
-//                                       addToCartUseCase: addToCartUseCase)
-//        
-//        // Create the ItemsViewController with the view model
-//        let itemsViewController = ItemsViewController(viewModel: viewModel)
-//        let navigationController = UINavigationController(rootViewController: itemsViewController)
-//        
-//        window = UIWindow(windowScene: windowScene)
-//        window?.rootViewController = navigationController
-//        window?.makeKeyAndVisible()
-//    }
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
                options connectionOptions: UIScene.ConnectionOptions) {

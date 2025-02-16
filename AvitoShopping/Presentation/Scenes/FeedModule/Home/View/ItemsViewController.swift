@@ -10,7 +10,9 @@ import UIKit
 final class ItemsViewController: UIViewController {
     private var collectionView: UICollectionView!
     private let viewModel: ItemsViewModel
-    private var items: [ProductItemViewModel] = [] // move to view model
+    private var items: [ProductItemViewModel] = []
+    
+    private let emptyStateView = EmptyStateView()
     
     private var recentSearchesVC: RecentSearchesViewController!
     private var searchController: UISearchController!
@@ -29,10 +31,30 @@ final class ItemsViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupCollectionView()
+        setupEmptyStateView()
         setupSearchController()
         bindViewModel()
+        emptyStateView.retryButton.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
         viewModel.handle(.onAppear)
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "cart.fill"), style: .plain, target: self, action: #selector(cartButtonTapped))
+    }
+    
+    private func setupEmptyStateView() {
+        view.addSubview(emptyStateView)
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            emptyStateView.topAnchor.constraint(equalTo: view.topAnchor),
+            emptyStateView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            emptyStateView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            emptyStateView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        emptyStateView.isHidden = true
+    }
+    
+    @objc private func retryButtonTapped() {
+        navigationItem.searchController?.searchBar.text = ""
+        viewModel.clearFilter()
+        viewModel.handle(.onAppear)
     }
     
     @objc private func cartButtonTapped() {
@@ -46,6 +68,13 @@ final class ItemsViewController: UIViewController {
                 switch state {
                 case .loaded(let viewData):
                     self?.items = viewData.products
+                    if viewData.products.isEmpty {
+                        self?.collectionView.isHidden = true
+                        self?.emptyStateView.isHidden = false
+                    } else {
+                        self?.collectionView.isHidden = false
+                        self?.emptyStateView.isHidden = true
+                    }
                     self?.collectionView.reloadData()
                 case .error(let message):
                     let alert = UIAlertController(title: "Error",
@@ -105,6 +134,7 @@ final class ItemsViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = .systemBackground
         collectionView.register(ItemCell.self, forCellWithReuseIdentifier: ItemCell.identifier)
+        collectionView.register(FullItemCell.self, forCellWithReuseIdentifier: FullItemCell.identifier)
         collectionView.dataSource = self
         collectionView.delegate = self
         
@@ -115,14 +145,6 @@ final class ItemsViewController: UIViewController {
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-    }
-}
-
-extension ItemsViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        if let recentVC = searchController.searchResultsController as? RecentSearchesViewController {
-            recentVC.tableView.reloadData()
-        }
     }
 }
 
@@ -142,34 +164,49 @@ extension ItemsViewController: UISearchBarDelegate {
                                    offset: 0,
                                    limit: 10)
         viewModel.applyFilter(filter)
-        searchController.isActive = false
+        navigationItem.searchController?.isActive = false
         searchBar.resignFirstResponder()
     }
 }
 
-
+extension ItemsViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        if let recentVC = searchController.searchResultsController as? RecentSearchesViewController {
+            recentVC.tableView.reloadData()
+        }
+    }
+}
 
 extension ItemsViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return items.count
     }
         
-    func collectionView(_ collectionView: UICollectionView,
-                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemCell.identifier,
-                                                            for: indexPath) as? ItemCell else {
-            return UICollectionViewCell()
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let productVM = items[indexPath.item]
+        let categoryId = productVM.originalDTO.category.id
+        
+        if categoryId == 1 || categoryId == 2 {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FullItemCell.identifier,
+                                                                for: indexPath) as? FullItemCell else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: productVM)
+            cell.onAddToCartTapped = { [weak self] in
+                self?.viewModel.addToCartButtonTapped(for: productVM.originalDTO)
+            }
+            return cell
+        } else {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemCell.identifier,
+                                                                for: indexPath) as? ItemCell else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: productVM)
+            cell.onAddToCartTapped = { [weak self] in
+                self?.viewModel.addToCartButtonTapped(for: productVM.originalDTO)
+            }
+            return cell
         }
-        let productViewModel = items[indexPath.item]
-        cell.configure(with: productViewModel)
-        cell.onFavoriteTapped = { [weak self] in
-            print("Favorite tapped for product id: \(productViewModel.imageUrl)")
-        }
-        cell.onAddToCartTapped = { [weak self] in
-            self?.viewModel.addToCartButtonTapped(for: productViewModel.originalDTO)
-            print("Add to cart tapped for product id: \(productViewModel.id)")
-        }
-        return cell
     }
 }
 
@@ -181,9 +218,18 @@ extension ItemsViewController: UICollectionViewDelegateFlowLayout {
         let insets = layout?.sectionInset ?? .zero
         let spacing = layout?.minimumInteritemSpacing ?? 0
         let totalPadding = insets.left + insets.right + spacing
-        let availableWidth = collectionView.frame.width - totalPadding
-        let cellWidth = availableWidth / 2
-        return CGSize(width: cellWidth, height: cellWidth * 1.3)
+        
+        let productVM = items[indexPath.item]
+        let categoryId = productVM.originalDTO.category.id
+        
+        if categoryId == 1 || categoryId == 2 {
+            let fullWidth = collectionView.frame.width - (insets.left + insets.right)
+            return CGSize(width: fullWidth, height: fullWidth * 0.9)
+        } else {
+            let availableWidth = collectionView.frame.width - totalPadding
+            let cellWidth = availableWidth / 2
+            return CGSize(width: cellWidth, height: cellWidth * 1.3)
+        }
     }
 }
 
@@ -195,6 +241,7 @@ extension ItemsViewController: UICollectionViewDelegate {
             viewModel.handle(.willDisplayLastItem)
         }
     }
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let productDTO = items[indexPath.item].originalDTO
         viewModel.handle(.onSelectItem(productDTO))

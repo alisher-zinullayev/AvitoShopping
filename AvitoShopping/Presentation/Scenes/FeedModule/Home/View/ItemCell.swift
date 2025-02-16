@@ -10,7 +10,7 @@ import UIKit
 class ItemCell: UICollectionViewCell {
     static let identifier = String(describing: ItemCell.self)
     
-    var onFavoriteTapped: (() -> Void)?
+//    var onFavoriteTapped: (() -> Void)?
     var onAddToCartTapped: (() -> Void)?
     
     private let imageView: UIImageView = {
@@ -21,16 +21,16 @@ class ItemCell: UICollectionViewCell {
         return iv
     }()
     
-    private let likeButton: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage(systemName: "heart.fill"), for: .normal)
-        button.tintColor = .gray
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.6)
-        button.layer.cornerRadius = 20
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+//    private let likeButton: UIButton = {
+//        let button = UIButton()
+//        button.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+//        button.tintColor = .gray
+//        button.backgroundColor = UIColor.white.withAlphaComponent(0.6)
+//        button.layer.cornerRadius = 20
+//        button.clipsToBounds = true
+//        button.translatesAutoresizingMaskIntoConstraints = false
+//        return button
+//    }()
 
     private let naming: UILabel = {
         let label = UILabel()
@@ -96,7 +96,7 @@ class ItemCell: UICollectionViewCell {
     
     private func setupViews() {
         contentView.addSubview(imageView)
-        contentView.addSubview(likeButton)
+//        contentView.addSubview(likeButton)
         contentView.addSubview(naming)
         contentView.addSubview(info)
         contentView.addSubview(price)
@@ -105,7 +105,7 @@ class ItemCell: UICollectionViewCell {
         imageView.layer.cornerRadius = 14
         imageView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         
-        likeButton.addTarget(self, action: #selector(favoriteAction), for: .touchUpInside)
+//        likeButton.addTarget(self, action: #selector(favoriteAction), for: .touchUpInside)
         addButton.addTarget(self, action: #selector(addToCartAction), for: .touchUpInside)
     }
     
@@ -116,10 +116,10 @@ class ItemCell: UICollectionViewCell {
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             imageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.5),
             
-            likeButton.topAnchor.constraint(equalTo: imageView.topAnchor, constant: 8),
-            likeButton.trailingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -8),
-            likeButton.widthAnchor.constraint(equalToConstant: 40),
-            likeButton.heightAnchor.constraint(equalToConstant: 40),
+//            likeButton.topAnchor.constraint(equalTo: imageView.topAnchor, constant: 8),
+//            likeButton.trailingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -8),
+//            likeButton.widthAnchor.constraint(equalToConstant: 40),
+//            likeButton.heightAnchor.constraint(equalToConstant: 40),
             
             naming.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
             naming.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
@@ -139,10 +139,10 @@ class ItemCell: UICollectionViewCell {
         ])
     }
     
-    @objc private func favoriteAction() {
-        onFavoriteTapped?()
-        likeButton.tintColor = (likeButton.tintColor == .red) ? .gray : .red
-    }
+//    @objc private func favoriteAction() {
+//        onFavoriteTapped?()
+//        likeButton.tintColor = (likeButton.tintColor == .red) ? .gray : .red
+//    }
     
     @objc private func addToCartAction() {
         onAddToCartTapped?()
@@ -151,7 +151,7 @@ class ItemCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         imageView.image = nil
-        likeButton.tintColor = .gray
+//        likeButton.tintColor = .gray
     }
     
     func configure(with viewModel: ProductItemViewModel) {

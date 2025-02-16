@@ -49,7 +49,6 @@ final class ItemsViewModel {
         Task {
             do {
                 try addToCartUseCase.execute(product: product)
-                // Optionally update state or inform the UI of a success
             } catch {
                 state = .error(error.localizedDescription)
             }
