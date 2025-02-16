@@ -16,28 +16,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         
-        let networkService = NetworkService()
-        let productRepository = ProductRepository(networkService: networkService)
-        let favoriteProductRepository = FavoriteProductRepositoryImpl()
-        let shoppingCartRepository = ShoppingCartRepositoryImpl()
-        let fetchProductsUseCase = FetchProductsUseCase(repository: productRepository)
-        let addFavoriteUseCase = AddFavoriteProductUseCase(repository: favoriteProductRepository)
-        let addToCartUseCase = AddToCartUseCase(repository: shoppingCartRepository)
-        
-        let navigationController = UINavigationController()
-        
-        let coordinator = ItemsCoordinator(navigationController: navigationController)
-        
-        let viewModel = ItemsViewModel(coordinator: coordinator,
-                                       fetchProductsUseCase: fetchProductsUseCase,
-                                       addFavoriteUseCase: addFavoriteUseCase,
-                                       addToCartUseCase: addToCartUseCase)
-        
-        let itemsViewController = ItemsViewController(viewModel: viewModel)
-        navigationController.viewControllers = [itemsViewController]
+        let mainTabBarController = MainTabBarController()
         
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = navigationController
+        window?.rootViewController = mainTabBarController
         window?.makeKeyAndVisible()
     }
 

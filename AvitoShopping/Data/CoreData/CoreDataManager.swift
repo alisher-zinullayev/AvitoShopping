@@ -37,8 +37,6 @@ final class CoreDataManager {
         }
     }
     
-    // MARK: - CartItem CRUD Methods
-    
     func createCartItem(productId: Int, title: String, price: Double, imageUrl: String, quantity: Int, position: Int, date: Date = Date()) {
         let cartItem = ProductCD(context: context)
         cartItem.productId = Int64(productId)

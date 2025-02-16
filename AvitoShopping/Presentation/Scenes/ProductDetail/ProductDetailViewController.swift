@@ -9,19 +9,79 @@ import UIKit
 
 final class ProductDetailViewController: UIViewController {
     private let viewModel: ProductDetailViewModel
+
+    private lazy var imagesCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumInteritemSpacing = 10
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.backgroundColor = .clear
+        cv.dataSource = self
+        cv.delegate = self
+        cv.showsHorizontalScrollIndicator = false
+        cv.register(ImageCell.self, forCellWithReuseIdentifier: ImageCell.reuseIdentifier)
+        return cv
+    }()
     
-    private var imagesCollectionView: UICollectionView!
-    private let titleLabel = UILabel()
-    private let descriptionLabel = UILabel()
-    private let priceLabel = UILabel()
-    private let categoryLabel = UILabel()
-    private let addToCartButton = UIButton(type: .system)
-    private let shareButton = UIButton(type: .system)
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let priceLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 18)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let categoryLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 18)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let addToCartButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemBlue
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.layer.cornerRadius = 8
+        button.clipsToBounds = true
+        return button
+    }()
+    
+    private let shareButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Поделиться", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemOrange
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.layer.cornerRadius = 8
+        button.clipsToBounds = true
+        return button
+    }()
     
     init(viewModel: ProductDetailViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        self.title = "Product Detail"
+        self.title = "Информация о продукте"
     }
     
     required init?(coder: NSCoder) {
@@ -39,6 +99,7 @@ final class ProductDetailViewController: UIViewController {
         viewModel.handle(.onAppear)
     }
     
+    // MARK: - Binding
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
             DispatchQueue.main.async {
@@ -54,76 +115,39 @@ final class ProductDetailViewController: UIViewController {
         case .loaded(let product, let isInCart):
             self.updateUI(with: product, isInCart: isInCart)
         case .error(let message):
-            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+            let alert = UIAlertController(title: "Ошибка",
+                                          message: message,
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ок", style: .default))
+            self.present(alert, animated: true)
         }
     }
     
     private func updateUI(with product: ProductDTO, isInCart: Bool) {
         titleLabel.text = product.title
         descriptionLabel.text = product.description
-        priceLabel.text = "Price: \(product.price)$"
-        categoryLabel.text = "Category: \(product.category.name)"
-        let buttonTitle = isInCart ? "Go to Cart" : "Add to Cart"
+        priceLabel.text = "Цена: \(product.price)$"
+        categoryLabel.text = "Категория: \(product.category.name)"
+        let buttonTitle = "Добавить"
         addToCartButton.setTitle(buttonTitle, for: .normal)
         imagesCollectionView.reloadData()
     }
     
     private func setupImagesCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumInteritemSpacing = 10
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        
-        imagesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        imagesCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        imagesCollectionView.backgroundColor = .clear
-        imagesCollectionView.dataSource = self
-        imagesCollectionView.delegate = self
-        imagesCollectionView.showsHorizontalScrollIndicator = false
-        imagesCollectionView.register(ImageCell.self, forCellWithReuseIdentifier: ImageCell.reuseIdentifier)
         view.addSubview(imagesCollectionView)
     }
     
     private func setupLabels() {
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
-        titleLabel.numberOfLines = 0
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(titleLabel)
-        
-        descriptionLabel.font = UIFont.systemFont(ofSize: 16)
-        descriptionLabel.numberOfLines = 0
-        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(descriptionLabel)
-        
-        priceLabel.font = UIFont.systemFont(ofSize: 18)
-        priceLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(priceLabel)
-        
-        categoryLabel.font = UIFont.systemFont(ofSize: 18)
-        categoryLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(categoryLabel)
     }
     
     private func setupButtons() {
-        addToCartButton.translatesAutoresizingMaskIntoConstraints = false
-        addToCartButton.setTitleColor(.white, for: .normal)
-        addToCartButton.backgroundColor = .systemBlue
-        addToCartButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        addToCartButton.layer.cornerRadius = 8
-        addToCartButton.clipsToBounds = true
         addToCartButton.addTarget(self, action: #selector(addToCartTapped), for: .touchUpInside)
-        view.addSubview(addToCartButton)
-        
-        shareButton.translatesAutoresizingMaskIntoConstraints = false
-        shareButton.setTitle("Share", for: .normal)
-        shareButton.setTitleColor(.white, for: .normal)
-        shareButton.backgroundColor = .systemOrange
-        shareButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        shareButton.layer.cornerRadius = 8
-        shareButton.clipsToBounds = true
         shareButton.addTarget(self, action: #selector(shareTapped), for: .touchUpInside)
+        view.addSubview(addToCartButton)
         view.addSubview(shareButton)
     }
     

@@ -8,7 +8,7 @@
 import UIKit
 
 class ShoppingCartCell: UITableViewCell {
-    static let identifier = "ShoppingCartCell"
+    static let identifier = String(describing: ShoppingCartCell.self)
     
     private let productImageView: UIImageView = {
         let iv = UIImageView()
@@ -125,7 +125,7 @@ class ShoppingCartCell: UITableViewCell {
     
     func configure(with item: ProductCD) {
         titleLabel.text = item.title
-        priceLabel.text = "Price: \(item.price)$"
+        priceLabel.text = "Цена: \(item.price)$"
         quantityLabel.text = "\(item.quantity)"
         if let urlString = item.imageUrl, !urlString.isEmpty {
             productImageView.loadImage(from: urlString)

@@ -55,7 +55,7 @@ class ItemCell: UICollectionViewCell {
     
     private lazy var addButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Add", for: .normal)
+        button.setTitle("Добавить", for: .normal)
         button.titleLabel?.font = .boldSystemFont(ofSize: 10)
         button.setTitleColor(.black, for: .normal)
         button.backgroundColor = .systemBlue.withAlphaComponent(0.3)
@@ -115,7 +115,7 @@ class ItemCell: UICollectionViewCell {
             
             addButton.centerYAnchor.constraint(equalTo: price.centerYAnchor),
             addButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            addButton.widthAnchor.constraint(equalToConstant: 60),
+            addButton.widthAnchor.constraint(equalToConstant: 70),
             addButton.heightAnchor.constraint(equalToConstant: 30)
         ])
     }

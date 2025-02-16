@@ -67,7 +67,7 @@ final class GalleryViewController: UIPageViewController {
     
     private func setupCloseButton() {
         let closeButton = UIButton(type: .system)
-        closeButton.setTitle("Back", for: .normal)
+        closeButton.setTitle("Назад", for: .normal)
         closeButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         closeButton.setTitleColor(.white, for: .normal)
         closeButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)

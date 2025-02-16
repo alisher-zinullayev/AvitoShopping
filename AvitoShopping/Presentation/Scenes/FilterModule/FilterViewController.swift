@@ -9,19 +9,30 @@ import UIKit
 
 final class FilterViewController: UIViewController {
     var onApplyFilter: ((ProductFilter) -> Void)?
-    
+
     private var selectedCategoryId: Int?
     private let viewModel = FilterViewModel()
     
-    private let titleTextField = CustomTextField(placeholder: "Title")
-    private let categoriesTitleLabel = CustomLabel(text: "All Categories")
-    private var collectionView: UICollectionView!
-    private let pricesTitleLabel = CustomLabel(text: "Prices")
-    private let priceMinTextField = CustomTextField(placeholder: "Min Price",
-                                                    keyboardType: .numberPad)
-    private let priceMaxTextField = CustomTextField(placeholder: "Max Price",
-                                                    keyboardType: .numberPad)
-    private lazy var applyButton = CustomButton(title: "Apply Filter")
+    private let titleTextField = CustomTextField(placeholder: "Продукт")
+    private let categoriesTitleLabel = CustomLabel(text: "Все категории")
+    
+    private lazy var collectionView: UICollectionView = {
+        let layout = CardFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        layout.minimumInteritemSpacing = 15
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.backgroundColor = .white
+        cv.dataSource = self
+        cv.delegate = self
+        cv.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.identifier)
+        return cv
+    }()
+    
+    private let pricesTitleLabel = CustomLabel(text: "Цены")
+    private let priceMinTextField = CustomTextField(placeholder: "Мин цена", keyboardType: .numberPad)
+    private let priceMaxTextField = CustomTextField(placeholder: "Макс цена", keyboardType: .numberPad)
     
     private lazy var pricesStackView: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [priceMinTextField, priceMaxTextField])
@@ -32,17 +43,20 @@ final class FilterViewController: UIViewController {
         return stack
     }()
     
+    private lazy var applyButton: UIButton = {
+        return CustomButton(title: "Применить фильтр")
+    }()
     
     private let categories: [Category] = [
-        Category(id: 1, name: "Clothes", image: ""),
-        Category(id: 2, name: "Electronics", image: ""),
-        Category(id: 3, name: "Furniture", image: ""),
-        Category(id: 4, name: "Shoes", image: "")
+        Category(id: 1, name: "Одежда", image: ""),
+        Category(id: 2, name: "Электроника", image: ""),
+        Category(id: 3, name: "Мебель", image: ""),
+        Category(id: 4, name: "Обувь", image: "")
     ]
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.title = "Filters"
+        navigationItem.title = "Фильтры"
         navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .white
         setupUI()
@@ -70,7 +84,7 @@ extension FilterViewController {
     private func setupUI() {
         view.addSubview(titleTextField)
         view.addSubview(categoriesTitleLabel)
-        setupCollectionView()
+        view.addSubview(collectionView)
         view.addSubview(pricesTitleLabel)
         view.addSubview(pricesStackView)
         view.addSubview(applyButton)
@@ -109,20 +123,6 @@ extension FilterViewController {
         priceMaxTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         
         applyButton.addTarget(self, action: #selector(applyFilterAction), for: .touchUpInside)
-    }
-    
-    private func setupCollectionView() {
-        let layout = CardFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        layout.minimumInteritemSpacing = 15
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .white
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.identifier)
-        view.addSubview(collectionView)
     }
 }
 

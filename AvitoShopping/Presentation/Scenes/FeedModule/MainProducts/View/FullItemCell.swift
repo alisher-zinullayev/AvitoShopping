@@ -8,7 +8,7 @@
 import UIKit
 
 final class FullItemCell: UICollectionViewCell {
-    static let identifier = "FullItemCell"
+    static let identifier = String(describing: FullItemCell.self)
     
     var onAddToCartTapped: (() -> Void)?
     
@@ -49,7 +49,7 @@ final class FullItemCell: UICollectionViewCell {
     
     private lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Add", for: .normal)
+        button.setTitle("Добавить", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         button.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.3)
         button.setTitleColor(.black, for: .normal)
@@ -106,7 +106,7 @@ final class FullItemCell: UICollectionViewCell {
             addButton.topAnchor.constraint(equalTo: priceLabel.bottomAnchor, constant: 10),
             addButton.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             addButton.trailingAnchor.constraint(lessThanOrEqualTo: titleLabel.trailingAnchor),
-            addButton.widthAnchor.constraint(equalToConstant: 80),
+            addButton.widthAnchor.constraint(equalToConstant: 110),
             addButton.heightAnchor.constraint(equalToConstant: 40),
             addButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -10)
         ])

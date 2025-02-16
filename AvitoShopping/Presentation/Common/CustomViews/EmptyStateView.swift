@@ -10,7 +10,7 @@ import UIKit
 final class EmptyStateView: UIView {
     let messageLabel: UILabel = {
         let label = UILabel()
-        label.text = "No products found."
+        label.text = "Продукты не найдены."
         label.font = UIFont.boldSystemFont(ofSize: 18)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -19,7 +19,7 @@ final class EmptyStateView: UIView {
     
     let retryButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Retry", for: .normal)
+        button.setTitle("Повторить попытку", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button

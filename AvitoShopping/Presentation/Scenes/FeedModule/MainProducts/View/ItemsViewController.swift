@@ -8,19 +8,52 @@
 import UIKit
 
 final class ItemsViewController: UIViewController {
-    private var collectionView: UICollectionView!
-    private let viewModel: ItemsViewModel
-//    private var items: [ProductItemViewModel] = []
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = 10
+        layout.minimumLineSpacing = 10
+        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.backgroundColor = .systemBackground
+        cv.register(ItemCell.self, forCellWithReuseIdentifier: ItemCell.identifier)
+        cv.register(FullItemCell.self, forCellWithReuseIdentifier: FullItemCell.identifier)
+        cv.dataSource = self
+        cv.delegate = self
+        return cv
+    }()
     
     private let emptyStateView = EmptyStateView()
     
-    private var recentSearchesVC: RecentSearchesViewController!
-    private var searchController: UISearchController!
+    private lazy var recentSearchesVC: RecentSearchesViewController = {
+        let vc = RecentSearchesViewController()
+        vc.onSelectQuery = { [weak self] query in
+            RecentSearchManager.shared.addSearchQuery(query)
+            let filter = ProductFilter(title: query,
+                                       priceMin: nil,
+                                       priceMax: nil,
+                                       categoryId: nil,
+                                       offset: 0,
+                                       limit: 10)
+            self?.viewModel.applyFilter(filter)
+            self?.searchController.isActive = false
+        }
+        return vc
+    }()
+    
+    private lazy var searchController: UISearchController = {
+        let sc = UISearchController(searchResultsController: recentSearchesVC)
+        sc.searchBar.placeholder = "Поиск продуктов"
+        sc.searchBar.delegate = self
+        return sc
+    }()
+    
+    private let viewModel: ItemsViewModel
     
     init(viewModel: ItemsViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        self.title = "Products"
+        self.title = "Продукты"
     }
     
     required init?(coder: NSCoder) {
@@ -35,7 +68,10 @@ final class ItemsViewController: UIViewController {
         setupSearchController()
         bindViewModel()
         viewModel.handle(.onAppear)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "cart.fill"), style: .plain, target: self, action: #selector(cartButtonTapped))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "cart.fill"),
+                                                           style: .plain,
+                                                           target: self,
+                                                           action: #selector(cartButtonTapped))
     }
     
     private func setupEmptyStateView() {
@@ -77,10 +113,10 @@ final class ItemsViewController: UIViewController {
                     }
                     self?.collectionView.reloadData()
                 case .error(let message):
-                    let alert = UIAlertController(title: "Error",
+                    let alert = UIAlertController(title: "Ошибка",
                                                   message: message,
                                                   preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    alert.addAction(UIAlertAction(title: "Ок", style: .default))
                     self?.present(alert, animated: true)
                 default:
                     break
@@ -90,22 +126,6 @@ final class ItemsViewController: UIViewController {
     }
     
     private func setupSearchController() {
-        recentSearchesVC = RecentSearchesViewController()
-        recentSearchesVC.onSelectQuery = { [weak self] query in
-            RecentSearchManager.shared.addSearchQuery(query)
-            let filter = ProductFilter(title: query,
-                                       priceMin: nil,
-                                       priceMax: nil,
-                                       categoryId: nil,
-                                       offset: 0,
-                                       limit: 10)
-            self?.viewModel.applyFilter(filter)
-            self?.searchController.isActive = false
-        }
-        
-        searchController = UISearchController(searchResultsController: recentSearchesVC)
-        searchController.searchBar.placeholder = "Search products"
-        searchController.searchBar.delegate = self
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         
@@ -125,19 +145,6 @@ final class ItemsViewController: UIViewController {
     }
     
     private func setupCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 10
-        layout.minimumLineSpacing = 10
-        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .systemBackground
-        collectionView.register(ItemCell.self, forCellWithReuseIdentifier: ItemCell.identifier)
-        collectionView.register(FullItemCell.self, forCellWithReuseIdentifier: FullItemCell.identifier)
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        
         view.addSubview(collectionView)
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),

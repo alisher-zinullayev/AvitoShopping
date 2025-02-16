@@ -7,20 +7,56 @@
 
 import UIKit
 
-import UIKit
-
-class ShoppingCartViewController: UIViewController {
-    private var tableView: UITableView!
+final class ShoppingCartViewController: UIViewController {
+    private let tableView: UITableView = {
+        let tv = UITableView(frame: .zero, style: .plain)
+        tv.translatesAutoresizingMaskIntoConstraints = false
+        tv.register(ShoppingCartCell.self, forCellReuseIdentifier: ShoppingCartCell.identifier)
+        return tv
+    }()
+    
+    private let bottomActionView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .systemGray6
+        return view
+    }()
+    
+    private let deleteAllButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Удалить все элементы", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        button.backgroundColor = .systemRed
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        return button
+    }()
+    
+    private let checkoutButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Оформить заказ", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        return button
+    }()
+    
     private var cartItems: [ProductCD] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        navigationItem.title = "Shopping Cart"
+        navigationItem.title = "Корзина Покупок"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action,
-                                                            target: self,
-                                                            action: #selector(shareCart))
+                                                              target: self,
+                                                              action: #selector(shareCart))
+        setupBottomActionView()
         setupTableView()
+        addButtonTargets()
+        fetchCartItems()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -29,23 +65,47 @@ class ShoppingCartViewController: UIViewController {
     }
     
     private func setupTableView() {
-        tableView = UITableView(frame: .zero, style: .plain)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(ShoppingCartCell.self, forCellReuseIdentifier: ShoppingCartCell.identifier)
+        view.addSubview(tableView)
         tableView.dataSource = self
         tableView.delegate = self
-        
-        tableView.dragInteractionEnabled = true
         tableView.dragDelegate = self
         tableView.dropDelegate = self
         
-        view.addSubview(tableView)
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: bottomActionView.topAnchor)
         ])
+    }
+    
+    private func setupBottomActionView() {
+        view.addSubview(bottomActionView)
+        NSLayoutConstraint.activate([
+            bottomActionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomActionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomActionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            bottomActionView.heightAnchor.constraint(equalToConstant: 80)
+        ])
+        
+        bottomActionView.addSubview(deleteAllButton)
+        bottomActionView.addSubview(checkoutButton)
+        NSLayoutConstraint.activate([
+            deleteAllButton.leadingAnchor.constraint(equalTo: bottomActionView.leadingAnchor, constant: 16),
+            deleteAllButton.centerYAnchor.constraint(equalTo: bottomActionView.centerYAnchor),
+            deleteAllButton.heightAnchor.constraint(equalToConstant: 44),
+            deleteAllButton.trailingAnchor.constraint(equalTo: bottomActionView.centerXAnchor, constant: -8),
+            
+            checkoutButton.leadingAnchor.constraint(equalTo: bottomActionView.centerXAnchor, constant: 8),
+            checkoutButton.trailingAnchor.constraint(equalTo: bottomActionView.trailingAnchor, constant: -16),
+            checkoutButton.centerYAnchor.constraint(equalTo: bottomActionView.centerYAnchor),
+            checkoutButton.heightAnchor.constraint(equalToConstant: 44)
+        ])
+    }
+    
+    private func addButtonTargets() {
+        deleteAllButton.addTarget(self, action: #selector(deleteAllTapped), for: .touchUpInside)
+        checkoutButton.addTarget(self, action: #selector(checkoutTapped), for: .touchUpInside)
     }
     
     private func fetchCartItems() {
@@ -57,6 +117,22 @@ class ShoppingCartViewController: UIViewController {
         let summary = CoreDataManager.shared.cartSummary()
         let activityVC = UIActivityViewController(activityItems: [summary], applicationActivities: nil)
         present(activityVC, animated: true)
+    }
+    
+    @objc private func deleteAllTapped() {
+        CoreDataManager.shared.clearCart()
+        fetchCartItems()
+    }
+    
+    @objc private func checkoutTapped() {
+        let alert = UIAlertController(title: "Оформить заказ",
+                                      message: "Приступать к оформлению заказа?",
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: { [weak self] _ in
+            self?.deleteAllTapped()
+        }))
+        present(alert, animated: true)
     }
 }
 
