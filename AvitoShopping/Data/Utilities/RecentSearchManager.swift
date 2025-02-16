@@ -7,7 +7,7 @@
 
 import Foundation
 
-class RecentSearchManager {
+final class RecentSearchManager {
     static let shared = RecentSearchManager()
     private let key = "recentSearches"
     private let maxCount = 5

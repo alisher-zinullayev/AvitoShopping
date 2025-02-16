@@ -11,7 +11,7 @@ protocol AddFavoriteProductUseCaseProtocol {
     func execute(product: ProductDTO) throws
 }
 
-class AddFavoriteProductUseCase: AddFavoriteProductUseCaseProtocol {
+final class AddFavoriteProductUseCase: AddFavoriteProductUseCaseProtocol {
     private let repository: FavoriteProductRepositoryProtocol
         
     init(repository: FavoriteProductRepositoryProtocol) {

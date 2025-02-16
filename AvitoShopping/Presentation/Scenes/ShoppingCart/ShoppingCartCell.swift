@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ShoppingCartCell: UITableViewCell {
+final class ShoppingCartCell: UITableViewCell {
     static let identifier = String(describing: ShoppingCartCell.self)
     
     private let productImageView: UIImageView = {

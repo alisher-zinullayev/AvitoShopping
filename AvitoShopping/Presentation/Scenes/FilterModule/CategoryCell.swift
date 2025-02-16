@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CategoryCell: UICollectionViewCell {
+final class CategoryCell: UICollectionViewCell {
     static let identifier = String(describing: CategoryCell.self)
     
     private let titleLabel: UILabel = {

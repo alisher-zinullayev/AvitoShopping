@@ -11,7 +11,7 @@ protocol FavoriteProductRepositoryProtocol {
     func addFavorite(product: ProductDTO) throws
 }
 
-class FavoriteProductRepositoryImpl: FavoriteProductRepositoryProtocol {
+final class FavoriteProductRepositoryImpl: FavoriteProductRepositoryProtocol {
     func addFavorite(product: ProductDTO) throws {
         print("Product favorite added to cart: \(product)")
     }

@@ -7,7 +7,7 @@
 
 import UIKit
 
-class RecentSearchesViewController: UITableViewController {
+final class RecentSearchesViewController: UITableViewController {
     var onSelectQuery: ((String) -> Void)?
     
     private var recentQueries: [String] {

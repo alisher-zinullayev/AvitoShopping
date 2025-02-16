@@ -11,7 +11,7 @@ protocol ShoppingCartRepositoryProtocol {
     func addToCart(product: ProductDTO) throws
 }
 
-class ShoppingCartRepositoryImpl: ShoppingCartRepositoryProtocol {
+final class ShoppingCartRepositoryImpl: ShoppingCartRepositoryProtocol {
     func addToCart(product: ProductDTO) throws {
         let items = CoreDataManager.shared.fetchCartItems()
         if let existingItem = items.first(where: { $0.productId == Int64(product.id) }) {

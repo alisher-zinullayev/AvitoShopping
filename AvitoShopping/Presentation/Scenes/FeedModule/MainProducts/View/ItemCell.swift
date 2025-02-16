@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ItemCell: UICollectionViewCell {
+final class ItemCell: UICollectionViewCell {
     static let identifier = String(describing: ItemCell.self)
     
     var onAddToCartTapped: (() -> Void)?

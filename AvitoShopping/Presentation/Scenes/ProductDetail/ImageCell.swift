@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ImageCell: UICollectionViewCell {
+final class ImageCell: UICollectionViewCell {
     static let reuseIdentifier = String(describing: ImageCell.self)
     
     private let imageView: UIImageView = {
