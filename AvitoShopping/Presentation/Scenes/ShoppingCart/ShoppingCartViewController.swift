@@ -25,7 +25,7 @@ final class ShoppingCartViewController: UIViewController {
     private let deleteAllButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Удалить все элементы", for: .normal)
+        button.setTitle("Удалить все", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         button.backgroundColor = .systemRed
         button.setTitleColor(.white, for: .normal)
