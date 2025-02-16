@@ -10,9 +10,15 @@ import Foundation
 enum ProductNetworkConfig: NetworkConfig {
     case productList(offset: Int, limit: Int)
     case filteredProducts(title: String?, priceMin: Double?, priceMax: Double?, categoryId: Int?, offset: Int, limit: Int)
+    case productDetail(productId: String)
     
     var path: String {
-        return "products"
+        switch self {
+        case .productList, .filteredProducts:
+            return "products"
+        case .productDetail(let productId):
+            return "products/\(productId)"
+        }
     }
     
     var endPoint: String {
@@ -48,6 +54,9 @@ enum ProductNetworkConfig: NetworkConfig {
             var components = URLComponents()
             components.queryItems = queryItems
             return components.percentEncodedQuery.map { "?\($0)" } ?? ""
+            
+        case .productDetail:
+            return ""
         }
     }
     

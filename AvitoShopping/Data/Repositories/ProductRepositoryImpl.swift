@@ -10,6 +10,7 @@ import Foundation
 protocol ProductRepositoryProtocol {
     func getProductList(offset: Int, limit: Int) async throws -> [ProductDTO]
     func getFilteredProductList(with config: NetworkConfig) async throws -> [ProductDTO]
+    func getProduct(by id: String) async throws -> ProductDTO
 }
 
 final class ProductRepository: ProductRepositoryProtocol {
@@ -25,6 +26,11 @@ final class ProductRepository: ProductRepositoryProtocol {
     }
     
     func getFilteredProductList(with config: NetworkConfig) async throws -> [ProductDTO] {
+        return try await networkService.request(with: config)
+    }
+    
+    func getProduct(by id: String) async throws -> ProductDTO {
+        let config = ProductNetworkConfig.productDetail(productId: id)
         return try await networkService.request(with: config)
     }
 }
