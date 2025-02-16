@@ -68,3 +68,16 @@ final class ProductDetailViewModel: ObservableObject {
         }
     }
 }
+
+extension ProductDetailViewModel {
+    var shareText: String? {
+        if case .loaded(let product, _) = state {
+            return """
+            \(product.title)
+            Price: \(product.price)$
+            \(product.description)
+            """
+        }
+        return nil
+    }
+}

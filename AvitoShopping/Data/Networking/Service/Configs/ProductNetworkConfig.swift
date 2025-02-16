@@ -9,7 +9,12 @@ import Foundation
 
 enum ProductNetworkConfig: NetworkConfig {
     case productList(offset: Int, limit: Int)
-    case filteredProducts(title: String?, priceMin: Double?, priceMax: Double?, categoryId: Int?, offset: Int, limit: Int)
+    case filteredProducts(title: String?,
+                          priceMin: Double?,
+                          priceMax: Double?,
+                          categoryId: Int?,
+                          offset: Int,
+                          limit: Int)
     case productDetail(productId: String)
     
     var path: String {
@@ -26,7 +31,12 @@ enum ProductNetworkConfig: NetworkConfig {
         case .productList(let offset, let limit):
             return "?offset=\(offset)&limit=\(limit)"
             
-        case .filteredProducts(let title, let priceMin, let priceMax, let categoryId, let offset, let limit):
+        case .filteredProducts(let title,
+                               let priceMin,
+                               let priceMax,
+                               let categoryId,
+                               let offset,
+                               let limit):
             var queryItems: [URLQueryItem] = []
             
             if let title = title, !title.isEmpty {

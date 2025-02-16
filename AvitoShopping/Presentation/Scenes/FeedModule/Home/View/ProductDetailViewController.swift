@@ -27,7 +27,7 @@ final class ProductDetailViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -52,18 +52,22 @@ final class ProductDetailViewController: UIViewController {
         case .idle, .loading:
             break
         case .loaded(let product, let isInCart):
-            titleLabel.text = product.title
-            descriptionLabel.text = product.description
-            priceLabel.text = "Price: \(product.price)$"
-            categoryLabel.text = "Category: \(product.category.name)"
-            let buttonTitle = isInCart ? "Go to Cart" : "Add to Cart"
-            addToCartButton.setTitle(buttonTitle, for: .normal)
-            imagesCollectionView.reloadData()
+            self.updateUI(with: product, isInCart: isInCart)
         case .error(let message):
             let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
         }
+    }
+    
+    private func updateUI(with product: ProductDTO, isInCart: Bool) {
+        titleLabel.text = product.title
+        descriptionLabel.text = product.description
+        priceLabel.text = "Price: \(product.price)$"
+        categoryLabel.text = "Category: \(product.category.name)"
+        let buttonTitle = isInCart ? "Go to Cart" : "Add to Cart"
+        addToCartButton.setTitle(buttonTitle, for: .normal)
+        imagesCollectionView.reloadData()
     }
     
     private func setupImagesCollectionView() {
@@ -162,12 +166,7 @@ final class ProductDetailViewController: UIViewController {
     }
     
     @objc private func shareTapped() {
-        guard case .loaded(let product, _) = viewModel.state else { return }
-        let shareText = """
-        \(product.title)
-        Price: \(product.price)$
-        \(product.description)
-        """
+        guard let shareText = viewModel.shareText else { return }
         let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
         present(activityVC, animated: true)
     }

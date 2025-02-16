@@ -5,7 +5,7 @@
 //  Created by Alisher Zinullayev on 11.02.2025.
 //
 
-import Foundation
+import UIKit
 
 final class ItemsViewModel {
     private(set) var state: ItemsViewState = .idle {
@@ -13,6 +13,8 @@ final class ItemsViewModel {
             onStateChange?(state)
         }
     }
+    
+    var items: [ProductItemViewModel] = []
     
     var onStateChange: ((ItemsViewState) -> Void)?
     
@@ -76,6 +78,39 @@ final class ItemsViewModel {
                 state = .error(error.localizedDescription)
             }
         }
+    }
+    
+    func cellSize(for collectionViewWidth: CGFloat, at index: Int, insets: UIEdgeInsets, interItemSpacing: CGFloat) -> CGSize {
+        let totalPadding = insets.left + insets.right + interItemSpacing
+        let productVM = items[index]
+        let categoryId = productVM.originalDTO.category.id
+        if categoryId == 1 || categoryId == 2 {
+            let fullWidth = collectionViewWidth - (insets.left + insets.right)
+            return CGSize(width: fullWidth, height: fullWidth * 0.9)
+        } else {
+            let availableWidth = collectionViewWidth - totalPadding
+            let cellWidth = availableWidth / 2
+            return CGSize(width: cellWidth, height: cellWidth * 1.3)
+        }
+    }
+    
+    func configuredCell(for collectionView: UICollectionView, at indexPath: IndexPath, categoryId: Int) -> UICollectionViewCell {
+        let productVM = items[indexPath.item]
+        let identifier = (categoryId == 1 || categoryId == 2) ? FullItemCell.identifier : ItemCell.identifier
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
+        
+        if let fullCell = cell as? FullItemCell {
+            fullCell.configure(with: productVM)
+            fullCell.onAddToCartTapped = { [weak self] in
+                self?.addToCartButtonTapped(for: productVM.originalDTO)
+            }
+        } else if let itemCell = cell as? ItemCell {
+            itemCell.configure(with: productVM)
+            itemCell.onAddToCartTapped = { [weak self] in
+                self?.addToCartButtonTapped(for: productVM.originalDTO)
+            }
+        }
+        return cell
     }
     
     func clearFilter() {

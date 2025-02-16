@@ -10,7 +10,7 @@ import UIKit
 final class ItemsViewController: UIViewController {
     private var collectionView: UICollectionView!
     private let viewModel: ItemsViewModel
-    private var items: [ProductItemViewModel] = []
+//    private var items: [ProductItemViewModel] = []
     
     private let emptyStateView = EmptyStateView()
     
@@ -34,12 +34,12 @@ final class ItemsViewController: UIViewController {
         setupEmptyStateView()
         setupSearchController()
         bindViewModel()
-        emptyStateView.retryButton.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
         viewModel.handle(.onAppear)
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "cart.fill"), style: .plain, target: self, action: #selector(cartButtonTapped))
     }
     
     private func setupEmptyStateView() {
+        emptyStateView.retryButton.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
         view.addSubview(emptyStateView)
         emptyStateView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -67,7 +67,7 @@ final class ItemsViewController: UIViewController {
             DispatchQueue.main.async {
                 switch state {
                 case .loaded(let viewData):
-                    self?.items = viewData.products
+                    self?.viewModel.items = viewData.products
                     if viewData.products.isEmpty {
                         self?.collectionView.isHidden = true
                         self?.emptyStateView.isHidden = false
@@ -179,34 +179,14 @@ extension ItemsViewController: UISearchResultsUpdating {
 
 extension ItemsViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
+        return viewModel.items.count
     }
         
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let productVM = items[indexPath.item]
-        let categoryId = productVM.originalDTO.category.id
-        
-        if categoryId == 1 || categoryId == 2 {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FullItemCell.identifier,
-                                                                for: indexPath) as? FullItemCell else {
-                return UICollectionViewCell()
-            }
-            cell.configure(with: productVM)
-            cell.onAddToCartTapped = { [weak self] in
-                self?.viewModel.addToCartButtonTapped(for: productVM.originalDTO)
-            }
-            return cell
-        } else {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ItemCell.identifier,
-                                                                for: indexPath) as? ItemCell else {
-                return UICollectionViewCell()
-            }
-            cell.configure(with: productVM)
-            cell.onAddToCartTapped = { [weak self] in
-                self?.viewModel.addToCartButtonTapped(for: productVM.originalDTO)
-            }
-            return cell
-        }
+        let productVM = viewModel.items[indexPath.item]
+        return viewModel.configuredCell(for: collectionView,
+                                        at: indexPath,
+                                        categoryId: productVM.originalDTO.category.id)
     }
 }
 
@@ -217,19 +197,10 @@ extension ItemsViewController: UICollectionViewDelegateFlowLayout {
         let layout = collectionViewLayout as? UICollectionViewFlowLayout
         let insets = layout?.sectionInset ?? .zero
         let spacing = layout?.minimumInteritemSpacing ?? 0
-        let totalPadding = insets.left + insets.right + spacing
-        
-        let productVM = items[indexPath.item]
-        let categoryId = productVM.originalDTO.category.id
-        
-        if categoryId == 1 || categoryId == 2 {
-            let fullWidth = collectionView.frame.width - (insets.left + insets.right)
-            return CGSize(width: fullWidth, height: fullWidth * 0.9)
-        } else {
-            let availableWidth = collectionView.frame.width - totalPadding
-            let cellWidth = availableWidth / 2
-            return CGSize(width: cellWidth, height: cellWidth * 1.3)
-        }
+        return viewModel.cellSize(for: collectionView.frame.width,
+                                  at: indexPath.item,
+                                  insets: insets,
+                                  interItemSpacing: spacing)
     }
 }
 
@@ -237,13 +208,13 @@ extension ItemsViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView,
                         willDisplay cell: UICollectionViewCell,
                         forItemAt indexPath: IndexPath) {
-        if indexPath.item == items.count - 1 {
+        if indexPath.item == viewModel.items.count - 1 {
             viewModel.handle(.willDisplayLastItem)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let productDTO = items[indexPath.item].originalDTO
+        let productDTO = viewModel.items[indexPath.item].originalDTO
         viewModel.handle(.onSelectItem(productDTO))
     }
 }

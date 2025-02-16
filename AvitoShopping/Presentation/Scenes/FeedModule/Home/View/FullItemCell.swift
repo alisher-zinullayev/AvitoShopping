@@ -10,7 +10,6 @@ import UIKit
 final class FullItemCell: UICollectionViewCell {
     static let identifier = "FullItemCell"
     
-    // Closure for handling add-to-cart action.
     var onAddToCartTapped: (() -> Void)?
     
     private let productImageView: UIImageView = {
@@ -88,27 +87,22 @@ final class FullItemCell: UICollectionViewCell {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Product image on the left, fixed width ~45% of cell
             productImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             productImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
             productImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
             productImageView.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.45),
             
-            // Title label on the right
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             titleLabel.leadingAnchor.constraint(equalTo: productImageView.trailingAnchor, constant: 10),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             
-            // Description label below title
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             descriptionLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             descriptionLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             
-            // Price label below description
             priceLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
             priceLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             
-            // Add button at the bottom of the right side
             addButton.topAnchor.constraint(equalTo: priceLabel.bottomAnchor, constant: 10),
             addButton.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             addButton.trailingAnchor.constraint(lessThanOrEqualTo: titleLabel.trailingAnchor),

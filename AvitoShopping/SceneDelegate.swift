@@ -16,7 +16,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         
-        // Create network layer dependencies
         let networkService = NetworkService()
         let productRepository = ProductRepository(networkService: networkService)
         let favoriteProductRepository = FavoriteProductRepositoryImpl()
@@ -25,19 +24,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let addFavoriteUseCase = AddFavoriteProductUseCase(repository: favoriteProductRepository)
         let addToCartUseCase = AddToCartUseCase(repository: shoppingCartRepository)
         
-        // Create a navigation controller
         let navigationController = UINavigationController()
         
-        // Create the coordinator and pass the navigation controller
         let coordinator = ItemsCoordinator(navigationController: navigationController)
         
-        // Initialize the view model including the coordinator
         let viewModel = ItemsViewModel(coordinator: coordinator,
                                        fetchProductsUseCase: fetchProductsUseCase,
                                        addFavoriteUseCase: addFavoriteUseCase,
                                        addToCartUseCase: addToCartUseCase)
         
-        // Create the ItemsViewController with the view model
         let itemsViewController = ItemsViewController(viewModel: viewModel)
         navigationController.viewControllers = [itemsViewController]
         
