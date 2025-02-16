@@ -6,8 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		437A6B322D60D592004DECBD /* ProductCD+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437A6B312D60D592004DECBD /* ProductCD+CoreDataProperties.swift */; };
+		437A6B332D60D592004DECBD /* ProductCD+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437A6B302D60D592004DECBD /* ProductCD+CoreDataClass.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		4317278D2D5B145800F4B5CB /* AvitoShopping.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AvitoShopping.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		437A6B302D60D592004DECBD /* ProductCD+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProductCD+CoreDataClass.swift"; sourceTree = "<group>"; };
+		437A6B312D60D592004DECBD /* ProductCD+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProductCD+CoreDataProperties.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -45,6 +52,8 @@
 		431727842D5B145800F4B5CB = {
 			isa = PBXGroup;
 			children = (
+				437A6B302D60D592004DECBD /* ProductCD+CoreDataClass.swift */,
+				437A6B312D60D592004DECBD /* ProductCD+CoreDataProperties.swift */,
 				4317278F2D5B145800F4B5CB /* AvitoShopping */,
 				4317278E2D5B145800F4B5CB /* Products */,
 			);
@@ -132,6 +141,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				437A6B322D60D592004DECBD /* ProductCD+CoreDataProperties.swift in Sources */,
+				437A6B332D60D592004DECBD /* ProductCD+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

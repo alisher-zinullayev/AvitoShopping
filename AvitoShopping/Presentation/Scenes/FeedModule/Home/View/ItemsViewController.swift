@@ -32,6 +32,12 @@ final class ItemsViewController: UIViewController {
         setupSearchController()
         bindViewModel()
         viewModel.handle(.onAppear)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "cart.fill"), style: .plain, target: self, action: #selector(cartButtonTapped))
+    }
+    
+    @objc private func cartButtonTapped() {
+        let cartVC = ShoppingCartViewController()
+        navigationController?.pushViewController(cartVC, animated: true)
     }
     
     private func bindViewModel() {
@@ -160,6 +166,7 @@ extension ItemsViewController: UICollectionViewDataSource {
             print("Favorite tapped for product id: \(productViewModel.imageUrl)")
         }
         cell.onAddToCartTapped = { [weak self] in
+            self?.viewModel.addToCartButtonTapped(for: productViewModel.originalDTO)
             print("Add to cart tapped for product id: \(productViewModel.id)")
         }
         return cell

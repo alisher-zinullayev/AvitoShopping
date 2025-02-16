@@ -45,6 +45,17 @@ final class ItemsViewModel {
         }
     }
     
+    func addToCartButtonTapped(for product: ProductDTO) {
+        Task {
+            do {
+                try addToCartUseCase.execute(product: product)
+                // Optionally update state or inform the UI of a success
+            } catch {
+                state = .error(error.localizedDescription)
+            }
+        }
+    }
+    
     func applyFilter(_ filter: ProductFilter) {
         currentFilter = filter
         pagination.reset()
