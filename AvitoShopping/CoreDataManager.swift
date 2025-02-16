@@ -64,8 +64,12 @@ final class CoreDataManager {
     }
     
     func updateCartItemQuantity(cartItem: ProductCD, newQuantity: Int) {
-        cartItem.quantity = Int64(newQuantity)
-        saveContext()
+        if newQuantity <= 0 {
+            deleteCartItem(cartItem: cartItem)
+        } else {
+            cartItem.quantity = Int64(newQuantity)
+            saveContext()
+        }
     }
     
     func updateCartItemPosition(cartItem: ProductCD, newPosition: Int) {

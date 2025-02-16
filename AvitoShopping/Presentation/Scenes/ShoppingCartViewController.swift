@@ -7,6 +7,8 @@
 
 import UIKit
 
+import UIKit
+
 class ShoppingCartViewController: UIViewController {
     private var tableView: UITableView!
     private var cartItems: [ProductCD] = []
@@ -32,6 +34,11 @@ class ShoppingCartViewController: UIViewController {
         tableView.register(ShoppingCartCell.self, forCellReuseIdentifier: ShoppingCartCell.identifier)
         tableView.dataSource = self
         tableView.delegate = self
+        
+        tableView.dragInteractionEnabled = true
+        tableView.dragDelegate = self
+        tableView.dropDelegate = self
+        
         view.addSubview(tableView)
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -58,19 +65,23 @@ extension ShoppingCartViewController: UITableViewDataSource {
         return cartItems.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ShoppingCartCell.identifier, for: indexPath) as? ShoppingCartCell else {
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ShoppingCartCell.identifier,
+                                                       for: indexPath) as? ShoppingCartCell else {
             return UITableViewCell()
         }
         let item = cartItems[indexPath.row]
         cell.configure(with: item)
+        cell.onQuantityChange = { [weak self] newQuantity in
+            CoreDataManager.shared.updateCartItemQuantity(cartItem: item, newQuantity: newQuantity)
+            self?.fetchCartItems()
+        }
         return cell
     }
-}
-
-extension ShoppingCartViewController: UITableViewDelegate {
-    // Optionally, support deleting items
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle,
+    
+    func tableView(_ tableView: UITableView,
+                   commit editingStyle: UITableViewCell.EditingStyle,
                    forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let item = cartItems[indexPath.row]
@@ -81,81 +92,46 @@ extension ShoppingCartViewController: UITableViewDelegate {
     }
 }
 
-class ShoppingCartCell: UITableViewCell {
-    static let identifier = "ShoppingCartCell"
-    
-    private let productImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.layer.cornerRadius = 6
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        iv.image = UIImage(systemName: "photo") // placeholder
-        return iv
-    }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let priceLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let quantityLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.addSubview(productImageView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(priceLabel)
-        contentView.addSubview(quantityLabel)
-        setupConstraints()
+extension ShoppingCartViewController: UITableViewDelegate { }
+
+extension ShoppingCartViewController: UITableViewDragDelegate {
+    func tableView(_ tableView: UITableView,
+                   itemsForBeginning session: UIDragSession,
+                   at indexPath: IndexPath) -> [UIDragItem] {
+        let item = cartItems[indexPath.row]
+        let itemProvider = NSItemProvider(object: "\(item.productId)" as NSString)
+        let dragItem = UIDragItem(itemProvider: itemProvider)
+        dragItem.localObject = item
+        return [dragItem]
     }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func setupConstraints() {
-        NSLayoutConstraint.activate([
-            productImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            productImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            productImageView.widthAnchor.constraint(equalToConstant: 60),
-            productImageView.heightAnchor.constraint(equalToConstant: 60),
-            
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            titleLabel.leadingAnchor.constraint(equalTo: productImageView.trailingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            priceLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            priceLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            
-            quantityLabel.topAnchor.constraint(equalTo: priceLabel.bottomAnchor, constant: 8),
-            quantityLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            quantityLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
-        ])
-    }
-    
-    func configure(with item: ProductCD) {
-        titleLabel.text = item.title
-        priceLabel.text = "Price: \(item.price)$"
-        quantityLabel.text = "Quantity: \(item.quantity)"
-        if let urlString = item.imageUrl, !urlString.isEmpty {
-            productImageView.loadImage(from: urlString)
-        } else {
-            productImageView.image = UIImage(systemName: "photo")
+}
+
+extension ShoppingCartViewController: UITableViewDropDelegate {
+    func tableView(_ tableView: UITableView,
+                   performDropWith coordinator: UITableViewDropCoordinator) {
+        guard coordinator.proposal.operation == .move,
+              let destinationIndexPath = coordinator.destinationIndexPath else { return }
+        
+        coordinator.items.forEach { dropItem in
+            if let sourceIndexPath = dropItem.sourceIndexPath,
+               let cartItem = dropItem.dragItem.localObject as? ProductCD {
+                tableView.performBatchUpdates({
+                    cartItems.remove(at: sourceIndexPath.row)
+                    cartItems.insert(cartItem, at: destinationIndexPath.row)
+                    tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
+                })
+                // Update positions in Core Data.
+                for (index, item) in cartItems.enumerated() {
+                    CoreDataManager.shared.updateCartItemPosition(cartItem: item, newPosition: index + 1)
+                }
+                coordinator.drop(dropItem.dragItem, toRowAt: destinationIndexPath)
+            }
         }
+    }
+    
+    func tableView(_ tableView: UITableView,
+                   dropSessionDidUpdate session: UIDropSession,
+                   withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
+        return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
     }
 }
