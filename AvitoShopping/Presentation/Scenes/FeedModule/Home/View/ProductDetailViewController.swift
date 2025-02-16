@@ -49,21 +49,20 @@ final class ProductDetailViewController: UIViewController {
     
     private func handleState(_ state: ProductDetailViewState) {
         switch state {
-        case .idle:
-            break
-        case .loading:
+        case .idle, .loading:
             break
         case .loaded(let product, let isInCart):
             titleLabel.text = product.title
             descriptionLabel.text = product.description
             priceLabel.text = "Price: \(product.price)$"
             categoryLabel.text = "Category: \(product.category.name)"
-            addToCartButton.setTitle("Add to Cart", for: .normal)
+            let buttonTitle = isInCart ? "Go to Cart" : "Add to Cart"
+            addToCartButton.setTitle(buttonTitle, for: .normal)
             imagesCollectionView.reloadData()
         case .error(let message):
             let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
-            self.present(alert, animated: true)
+            present(alert, animated: true)
         }
     }
     
@@ -105,11 +104,21 @@ final class ProductDetailViewController: UIViewController {
     
     private func setupButtons() {
         addToCartButton.translatesAutoresizingMaskIntoConstraints = false
+        addToCartButton.setTitleColor(.white, for: .normal)
+        addToCartButton.backgroundColor = .systemBlue
+        addToCartButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        addToCartButton.layer.cornerRadius = 8
+        addToCartButton.clipsToBounds = true
         addToCartButton.addTarget(self, action: #selector(addToCartTapped), for: .touchUpInside)
         view.addSubview(addToCartButton)
         
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         shareButton.setTitle("Share", for: .normal)
+        shareButton.setTitleColor(.white, for: .normal)
+        shareButton.backgroundColor = .systemOrange
+        shareButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        shareButton.layer.cornerRadius = 8
+        shareButton.clipsToBounds = true
         shareButton.addTarget(self, action: #selector(shareTapped), for: .touchUpInside)
         view.addSubview(shareButton)
     }
@@ -139,10 +148,12 @@ final class ProductDetailViewController: UIViewController {
             addToCartButton.topAnchor.constraint(equalTo: categoryLabel.bottomAnchor, constant: 20),
             addToCartButton.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             addToCartButton.heightAnchor.constraint(equalToConstant: 44),
+            addToCartButton.widthAnchor.constraint(equalToConstant: 150),
             
             shareButton.centerYAnchor.constraint(equalTo: addToCartButton.centerYAnchor),
             shareButton.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            shareButton.heightAnchor.constraint(equalToConstant: 44)
+            shareButton.heightAnchor.constraint(equalToConstant: 44),
+            shareButton.widthAnchor.constraint(equalToConstant: 150)
         ])
     }
     

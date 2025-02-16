@@ -36,8 +36,8 @@ final class FilterViewController: UIViewController {
     private let categories: [Category] = [
         Category(id: 1, name: "Clothes", image: ""),
         Category(id: 2, name: "Electronics", image: ""),
-        Category(id: 3, name: "Home", image: ""),
-        Category(id: 4, name: "Toys", image: "")
+        Category(id: 3, name: "Furniture", image: ""),
+        Category(id: 4, name: "Shoes", image: "")
     ]
     
     override func viewDidLoad() {

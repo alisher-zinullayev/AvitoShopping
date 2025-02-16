@@ -92,7 +92,11 @@ extension ShoppingCartViewController: UITableViewDataSource {
     }
 }
 
-extension ShoppingCartViewController: UITableViewDelegate { }
+extension ShoppingCartViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+}
 
 extension ShoppingCartViewController: UITableViewDragDelegate {
     func tableView(_ tableView: UITableView,
@@ -120,7 +124,6 @@ extension ShoppingCartViewController: UITableViewDropDelegate {
                     cartItems.insert(cartItem, at: destinationIndexPath.row)
                     tableView.moveRow(at: sourceIndexPath, to: destinationIndexPath)
                 })
-                // Update positions in Core Data.
                 for (index, item) in cartItems.enumerated() {
                     CoreDataManager.shared.updateCartItemPosition(cartItem: item, newPosition: index + 1)
                 }
